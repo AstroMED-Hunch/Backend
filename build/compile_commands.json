@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/Users/marcostulic/Documents/Coding/Hunch_Medical/build",
+  "command": "/usr/bin/clang++ -g -std=c++2b -arch arm64 -o CMakeFiles/HunchMedical.dir/src/main.cpp.o -c /Users/marcostulic/Documents/Coding/Hunch_Medical/src/main.cpp",
+  "file": "/Users/marcostulic/Documents/Coding/Hunch_Medical/src/main.cpp",
+  "output": "/Users/marcostulic/Documents/Coding/Hunch_Medical/build/CMakeFiles/HunchMedical.dir/src/main.cpp.o"
+}
+]

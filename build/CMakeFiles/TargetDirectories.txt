@@ -1,0 +1,3 @@
+/Users/marcostulic/Documents/Coding/Hunch_Medical/build/CMakeFiles/HunchMedical.dir
+/Users/marcostulic/Documents/Coding/Hunch_Medical/build/CMakeFiles/edit_cache.dir
+/Users/marcostulic/Documents/Coding/Hunch_Medical/build/CMakeFiles/rebuild_cache.dir
