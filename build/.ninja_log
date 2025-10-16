@@ -1,3 +1,5 @@
 # ninja log v7
-1	442	1760553991114584363	CMakeFiles/HunchMedical.dir/src/main.cpp.o	919af60b9310b66f
-443	479	1760553991556326836	HunchMedical	fc35be6c612d80db
+5	543	1760627344729342003	CMakeFiles/HunchMedical.dir/src/main.cpp.o	558ac71f619bc14d
+543	577	1760627345267394727	HunchMedical	ca0c4a847a816616
+2	96	1760632760981427078	build.ninja	90ae5b7d9e0ea0f8
+2	96	1760632760980854618	/Users/marcostulic/Documents/Coding/Hunch_Medical/build/cmake_install.cmake	90ae5b7d9e0ea0f8

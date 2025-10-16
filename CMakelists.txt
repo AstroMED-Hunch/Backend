@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.15)
+project(HunchMedical)
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(HUNCH_SOURCES 
+src/main.cpp
+)
+
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
+add_executable(HunchMedical ${HUNCH_SOURCES})
+target_link_libraries(HunchMedical ${OpenCV_LIBS})
