@@ -193,13 +193,13 @@ CMAKE_OSX_SYSROOT:STRING=
 CMAKE_PROJECT_COMPAT_VERSION:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_DESCRIPTION:STATIC=
+CMAKE_PROJECT_DESCRIPTION:STATIC=Rapid YAML parsing and emitting
 
 //Value Computed by CMake
-CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
+CMAKE_PROJECT_HOMEPAGE_URL:STATIC=https://github.com/biojppm/rapidyaml
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=YAML_CPP
+CMAKE_PROJECT_NAME:STATIC=ryml
 
 //Value Computed by CMake
 CMAKE_PROJECT_VERSION:STATIC=0.8.0
@@ -366,6 +366,15 @@ YAML_ENABLE_PIC:BOOL=ON
 //Use system googletest if found
 YAML_USE_SYSTEM_GTEST:BOOL=OFF
 
+//Value Computed by CMake
+ryml_BINARY_DIR:STATIC=/Users/marcostulic/Documents/Coding/Hunch_Medical/build
+
+//Value Computed by CMake
+ryml_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+ryml_SOURCE_DIR:STATIC=/Users/marcostulic/Documents/Coding/Hunch_Medical
+
 
 ########################
 # INTERNAL cache entries
@@ -387,8 +396,6 @@ CMAKE_CACHE_PATCH_VERSION:INTERNAL=2
 CMAKE_COMMAND:INTERNAL=/opt/homebrew/bin/cmake
 //Path to cpack program executable.
 CMAKE_CPACK_COMMAND:INTERNAL=/opt/homebrew/bin/cpack
-//ADVANCED property for variable: CMAKE_CTEST_COMMAND
-CMAKE_CTEST_COMMAND-ADVANCED:INTERNAL=1
 //Path to ctest program executable.
 CMAKE_CTEST_COMMAND:INTERNAL=/opt/homebrew/bin/ctest
 //ADVANCED property for variable: CMAKE_CXX_COMPILER

@@ -5,17 +5,18 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set_property(TARGET HunchMedical PROPERTY COMPILE_WARNING_AS_ERROR ON)
+
 set(HUNCH_SOURCES 
 src/main.cpp
 src/code.cpp
 src/box.cpp
 src/shelf_bounds.cpp
+src/mlayout/lexer.cpp
 )
 
-
-include(./extern/yaml-cpp/CMakeLists.txt)
 find_package(OpenCV REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIRS} ${YAML_INCLUDE_DIRS})
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 add_executable(HunchMedical ${HUNCH_SOURCES})
-target_link_libraries(HunchMedical ${OpenCV_LIBS} ${YAML_CPP_LIBRARIES})
+target_link_libraries(HunchMedical ${OpenCV_LIBS})

@@ -1,0 +1,6 @@
+create_layout "example" # make a new layout (not needed if file is modifying existing layout)
+
+summon_layout "example" # we are editing the layout "example" from now on
+
+
+
