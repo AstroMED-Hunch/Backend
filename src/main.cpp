@@ -1,18 +1,20 @@
+#include <opencv2/objdetect/aruco_dictionary.hpp>
 #include <print>
 #include <opencv2/objdetect/aruco_detector.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <filesystem>
 
-constexpr int NUM_MARKERS = 99;
+#include "code.hpp"
+
+constexpr int NUM_MARKERS = 1000;
+
+void read_markers() {
+    for (auto& marker: Markers::registered_markers) {
+        std::printf("%d\n", marker->get_code_id());
+    }
+}
 
 int main() {
-    std::filesystem::create_directory("markers");
-    for (int i = 0; i < NUM_MARKERS; ++i) {
-        cv::Mat markerImage;
-        cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
-        cv::aruco::generateImageMarker(dictionary, i, 200, markerImage, 1);
-        std::string filename = "markers/marker" + std::to_string(i) + ".png";
-        cv::imwrite(filename, markerImage);
-    }
+    read_markers();
     return 0;
 }
