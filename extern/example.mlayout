@@ -1,0 +1,60 @@
+# SAMPLE LAYOUT FILE
+
+create_layout "example" # make a new layout (not needed if file is modifying existing layout)
+summon_layout "example" # we are editing the layout "example" from now on
+
+
+# CODES
+
+create_codeset "box_tags" # make a group of codes
+summon_codeset "box_tags" # set it as the current codeset we are editing
+
+interpreter_set "box" # set them to be interpreted by the box recognizer
+
+# define all the codes to add
+push_code 110
+push_code 230
+
+
+# SHELVES
+
+# SHELF 1
+
+create_codeset "shelf1" # make a group of codes for the shelf
+summon_codeset "shelf1" # set it as the current codeset we are editing
+
+interpreter_set "shelf" # set them to be interpreted by the shelf recognizer
+
+# define all the codes to add for the 4 corners
+push_code 110
+push_code 230
+push_code 260
+push_code 360
+
+# SHELF 2
+
+create_codeset "shelf2" # make a group of codes for the shelf
+summon_codeset "shelf2" # set it as the current codeset we are editing
+
+interpreter_set "shelf" # set them to be interpreted by the shelf recognizer
+
+# define all the codes to add for the 4 corners
+push_code 112
+push_code 232
+push_code 262
+push_code 332
+
+# BINDSET
+
+create_codeset "example" # needs to be same name as file
+summon_codeset "example"
+
+# FINAL BINDINGS
+
+# bind the shelves to the box tags
+bind "box_tags" to "shelf1"
+bind "box_tags" to "shelf2"
+
+#bind the shelves to the layout
+bind "shelf1" to "example"
+bind "shelf2" to "example"

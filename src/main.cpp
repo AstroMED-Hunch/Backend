@@ -3,6 +3,7 @@
 #include <opencv2/objdetect/aruco_detector.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <filesystem>
+
 #include "mlayout/lexer.hpp"
 
 #include "code.hpp"
@@ -17,6 +18,6 @@ void read_markers() {
 
 int main() {
     read_markers();
-    MLayout::lex_string("example input");
+    MLayout::lex_file("../extern/example.mlayout");
     return 0;
 }

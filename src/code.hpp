@@ -3,23 +3,24 @@
 #include <mutex>
 #include <vector>
 #include <memory>
+#include "vec.hpp"
+
+class CodeGroup;
 
 class ArucoMarker : public std::enable_shared_from_this<ArucoMarker> {
     public:
-        ArucoMarker();
-        float x_start = 0.0f, y_start = 0.0f;
-        float x_end = 0.0f, y_end = 0.0f;
+        ArucoMarker(std::weak_ptr<CodeGroup> group);
 
         void set_code_id(int id);
         int get_code_id() const;
-
+        
+        Vec2 position;
 
     protected:
         int code_id = -1;
+        std::weak_ptr<CodeGroup> code_group;
 
-        mutable std::mutex mutex;
-
-
+        mutable std::recursive_mutex mutex;
 };
 
 class Markers {

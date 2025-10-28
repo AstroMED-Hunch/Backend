@@ -3,9 +3,7 @@ project(HunchMedical)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-set_property(TARGET HunchMedical PROPERTY COMPILE_WARNING_AS_ERROR ON)
+set(CMAKE_CXX_EXTENSIONS ON)
 
 set(HUNCH_SOURCES 
 src/main.cpp
@@ -17,6 +15,10 @@ src/mlayout/lexer.cpp
 
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories("./src/")
 
 add_executable(HunchMedical ${HUNCH_SOURCES})
 target_link_libraries(HunchMedical ${OpenCV_LIBS})
+
+
+set_property(TARGET HunchMedical PROPERTY COMPILE_WARNING_AS_ERROR ON)
