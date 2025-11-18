@@ -7,12 +7,14 @@
 
 class CodeGroup;
 
-class ArucoMarker : public std::enable_shared_from_this<ArucoMarker> {
+class ArucoMarker {
     public:
-        ArucoMarker(std::weak_ptr<CodeGroup> group);
+        ArucoMarker();
 
         void set_code_id(int id);
         int get_code_id() const;
+
+        std::shared_ptr<CodeGroup> get_code_group() const;
         
         Vec2 position;
 

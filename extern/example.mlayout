@@ -1,3 +1,5 @@
+named LAYOUT_NAME "example"
+
 # SAMPLE LAYOUT FILE
 
 create_layout "example" # make a new layout (not needed if file is modifying existing layout)
@@ -48,6 +50,8 @@ push_code 332
 
 create_codeset "example" # needs to be same name as file
 summon_codeset "example"
+
+interpreter_set "layout" # set to be interpreted by the layout recognizer
 
 # FINAL BINDINGS
 

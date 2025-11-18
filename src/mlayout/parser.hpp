@@ -1,21 +1,53 @@
 #pragma once
 #include "lexer.hpp"
 #include "code.hpp"
+#include <memory>
+#include <unordered_map>
 
 namespace MLayout {
     enum class Interpreter {
         INTERPRETER_NONE,
         INTERPRETER_CODE,
         INTERPRETER_SHELF,
+        INTERPRETER_LAYOUT
     };
-    struct CodeGroup {
+    struct Layout; // forward declaration
+
+    struct CodeGroup : public std::enable_shared_from_this<CodeGroup> {
         std::vector<std::shared_ptr<ArucoMarker>> markers;
         Interpreter interpreter = Interpreter::INTERPRETER_NONE;
         std::string tag;
+        std::vector<Layout*> bound_to;
     };
-    struct Layout {
-        std::vector<std::shared_ptr<CodeGroup>> code_groups;
+    struct Layout : public std::enable_shared_from_this<Layout> {
+        std::vector<CodeGroup*> code_groups;
         std::string name;
+    };
+
+    Interpreter get_interpreter_from_string(const std::string& str);
+
+    enum class VariableType {
+        VAR_INT,
+        VAR_FLOAT,
+        VAR_STRING,
+    };
+    union Var {
+        int int_value;
+        float float_value;
+        std::string* string_value;
+    };
+
+    struct Variable {
+        VariableType type;
+        Var value;
+    };
+
+    class Environment {
+        public:
+            std::unordered_map<std::string, Variable> variables;
+            std::vector<Layout*> layouts;
+            CodeGroup* current_code_group = nullptr;
+            Layout* current_layout = nullptr;
     };
 
     std::unique_ptr<Layout> parse_tokens(const std::vector<TokenBase*>& tokens);

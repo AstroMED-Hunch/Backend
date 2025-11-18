@@ -11,7 +11,11 @@ src/code.cpp
 src/box.cpp
 src/shelf_bounds.cpp
 src/mlayout/lexer.cpp
+src/mlayout/parser.cpp
 )
+
+
+enable_testing()
 
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
