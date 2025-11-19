@@ -2,7 +2,6 @@
 #include <print>
 #include <stdexcept>
 #include <memory>
-#include <iostream>
 
 namespace MLayout {
     CodeGroup* find_codeset_by_tag(const std::string& tag, Layout* layout) {
@@ -174,8 +173,7 @@ namespace MLayout {
                     if (env.current_code_group == nullptr) {
                         throw std::runtime_error("No current codeset to push code to");
                     }
-                    std::shared_ptr<ArucoMarker> marker = std::make_shared<ArucoMarker>();
-                    marker->set_code_id(marker_id.value.int_value);
+                    std::shared_ptr<ArucoMarker> marker = std::make_shared<ArucoMarker>(marker_id.value.int_value);
                     env.current_code_group->markers.push_back(marker);
                     ++iter;
                 }

@@ -1,15 +1,20 @@
 #pragma once
-#include <string>
 #include <mutex>
 #include <vector>
 #include <memory>
+#include <unordered_map>
 #include "vec.hpp"
 
 class CodeGroup;
 
+void init_cv(int camera_index);
+void identify_and_set_positions();
+
 class ArucoMarker {
     public:
-        ArucoMarker();
+        static std::unordered_map<int, ArucoMarker*> registered_markers;
+        ArucoMarker(int new_id);
+        ~ArucoMarker();
 
         void set_code_id(int id);
         int get_code_id() const;
@@ -17,6 +22,7 @@ class ArucoMarker {
         std::shared_ptr<CodeGroup> get_code_group() const;
         
         Vec2 position;
+        bool is_visible = false;
 
     protected:
         int code_id = -1;
