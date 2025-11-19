@@ -17,6 +17,7 @@ int main(int argc, char** argv) {
         std::string arg = argv[i];
         if (arg == "--camera" && i + 1 < argc) {
             cam_index = std::stoi(argv[++i]);
+            std::println("Using camera index: {}", cam_index);
         }
     }
 
