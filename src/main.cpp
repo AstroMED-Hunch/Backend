@@ -10,7 +10,7 @@
 
 constexpr int NUM_MARKERS = 1000;
 
-int main() {
+int main(int argc, char** argv) {
     auto layout = MLayout::parse_file("../extern/example.mlayout");
 
     for (const auto& code_group : layout->code_groups) {
@@ -23,7 +23,7 @@ int main() {
         }
 
         for (const auto& layout : code_group->bound_to) {
-            std::printf("  Bound to layout: %s\n", layout->name.c_str());
+            std::printf("  Bound to layout: %s\n", layout->tag.c_str());
         }
     }
     return 0;

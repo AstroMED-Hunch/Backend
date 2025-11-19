@@ -15,14 +15,23 @@ namespace MLayout {
     }
 
     Interpreter get_interpreter_from_string(const std::string& str) {
-        if (str == "code") {
-            return Interpreter::INTERPRETER_CODE;
+        if (str == "box") {
+            return Interpreter::INTERPRETER_BOX;
         } else if (str == "shelf") {
             return Interpreter::INTERPRETER_SHELF;
         } else if (str == "layout") {
             return Interpreter::INTERPRETER_LAYOUT;
         } else {
             return Interpreter::INTERPRETER_NONE;
+        }
+    }
+
+    void CodeGroup::interpret(Layout& layout) {
+        auto it = interpreters::interpreter_registry.find(interpreter);
+        if (it != interpreters::interpreter_registry.end()) {
+            it->second(layout, this);
+        } else {
+            throw std::runtime_error("Interpreter not found for code group: " + tag);
         }
     }
 
@@ -182,9 +191,6 @@ namespace MLayout {
                     std::string tname = *(tag_name.value.string_value);
 
                     CodeGroup* bound_codeset = find_codeset_by_tag(tname, env.current_layout);
-                    if (bound_codeset) {
-                        bound_codeset->bound_to.push_back(env.current_layout);
-                    }
                     ++iter;
 
                     if ((*iter)->get_type() != ML_Token::TOKEN_SYMBOL) {
@@ -204,8 +210,8 @@ namespace MLayout {
                     if (to_codeset == nullptr) {
                         throw std::runtime_error("Codeset not found for bind: " + to_cname);
                     }
-                    to_codeset->bound_to.push_back(env.current_layout);
-                    std::print("Bound codeset {} to layout {}\n", to_codeset->tag, env.current_layout->name);
+                    to_codeset->bound_to.push_back(bound_codeset);
+                    std::print("Bound codeset {} to codeset {}\n", to_codeset->tag, bound_codeset->tag);
                     ++iter;
                 }
                 else {

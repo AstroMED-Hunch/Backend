@@ -1,4 +1,4 @@
-named LAYOUT_NAME "example"
+named LAYOUT_NAME "example" # variable
 
 # SAMPLE LAYOUT FILE
 

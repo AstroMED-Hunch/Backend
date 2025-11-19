@@ -3,21 +3,22 @@
 #include "code.hpp"
 #include <memory>
 #include <unordered_map>
+#include "interpreters.hpp"
+#include "vec.hpp"
 
 namespace MLayout {
-    enum class Interpreter {
-        INTERPRETER_NONE,
-        INTERPRETER_CODE,
-        INTERPRETER_SHELF,
-        INTERPRETER_LAYOUT
-    };
     struct Layout; // forward declaration
 
     struct CodeGroup : public std::enable_shared_from_this<CodeGroup> {
         std::vector<std::shared_ptr<ArucoMarker>> markers;
         Interpreter interpreter = Interpreter::INTERPRETER_NONE;
         std::string tag;
-        std::vector<Layout*> bound_to;
+        std::vector<CodeGroup*> bound_to;
+
+        void interpret(Layout& layout);
+
+        Vec3 corner_positions_box[2] = {Vec3(0,0,0), Vec3(0,0,0)};
+        
     };
     struct Layout : public std::enable_shared_from_this<Layout> {
         std::vector<CodeGroup*> code_groups;
