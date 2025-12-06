@@ -3,12 +3,9 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
-#include "vec.hpp"
+#include "../../Vec.hpp"
 
 class CodeGroup;
-
-void init_cv(int camera_index);
-void identify_and_set_positions();
 
 class ArucoMarker {
     public:

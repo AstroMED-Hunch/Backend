@@ -1,8 +1,9 @@
 #pragma once
 
-#include "code.hpp"
+#include "Code.hpp"
 #include <mutex>
 #include <string>
+#include <array>
 #include <vector>
 
 struct Rect {
@@ -17,12 +18,10 @@ class ShelfBounds {
         ShelfBounds(std::string shelf_tag, std::array<std::unique_ptr<ArucoMarker>,4> markers);
         ~ShelfBounds();
         std::array<std::unique_ptr<ArucoMarker>,4> markers;
-        bool check_square_inside_square(Rect rect1, Rect rect2) const;
+        static bool check_square_inside_square(Rect rect1, Rect rect2);
 
     protected:
         std::string shelf_tag;
-
-        bool is_square_inside_square(Rect rect1, Rect rect2) const;
 
         mutable std::mutex mutex;
 };

@@ -4,11 +4,13 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "mlayout/parser.hpp"
+#include "Module.hpp"
+#include "Module_Registry.hpp"
+#include "mlayout/Parser.hpp"
 
-#include "code.hpp"
+#include "modules/aruco/Code.hpp"
 
-constexpr int DEFAULT_CAM_INDEX = 1;
+constexpr int DEFAULT_CAM_INDEX = 0;
 
 int main(int argc, char** argv) {
     int cam_index = DEFAULT_CAM_INDEX;
@@ -17,29 +19,46 @@ int main(int argc, char** argv) {
         std::string arg = argv[i];
         if (arg == "--camera" && i + 1 < argc) {
             cam_index = std::stoi(argv[++i]);
-            std::println("Using camera index: {}", cam_index);
+            std::cout << "Camera index set to: " << cam_index << std::endl;
         }
     }
-
-    init_cv(cam_index);
 
     auto layout = MLayout::parse_file("../extern/example.mlayout");
 
     for (const auto& code_group : layout->code_groups) {
-        std::printf("Code Group: %s\n", code_group->tag.c_str());
+        std::cout << "Code Group: " << code_group->tag << std::endl;
 
-
-        std::printf("%zu", code_group->markers.size());
+        std::cout << code_group->markers.size() << std::endl;
         for (const auto& code : code_group->markers) {
-            std::printf("  Code: %d\n", code->get_code_id());
+            std::cout << "Code: " << code->get_code_id() << std::endl;
         }
 
-        for (const auto& layout : code_group->bound_to) {
-            std::printf("  Bound to layout: %s\n", layout->tag.c_str());
+        for (const auto& layout_idx : code_group->bound_to) {
+            std::cout << "Bound to layout: " << layout_idx->tag.c_str() << std::endl;
         }
     }
+
+    std::vector<Module*> modules;
+    modules.reserve(layout->module_load_requests.size());
+
+    for (const auto& module_name : layout->module_load_requests) {
+        std::cout << "Attempting to load module: " << module_name << std::endl;
+        if (Module* module = Module_Registry::create_module(module_name)) {
+            module->layout = layout.get();
+            module->initialize();
+            modules.push_back(module);
+            std::cout << "Loaded module: " << module_name << std::endl;
+        } else {
+            std::cerr << "Failed to load module: " << module_name << std::endl;
+        }
+    }
+
+    modules.shrink_to_fit();
+
     while (true) {
-        identify_and_set_positions();
+        for (const auto& module : modules) {
+            module->run();
+        }
 
         if (cv::waitKey(30) >= 0) break;
     }

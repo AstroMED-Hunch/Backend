@@ -1,5 +1,5 @@
-#include "interpreters.hpp"
-#include "mlayout/parser.hpp"
+#include "Interpreters.hpp"
+#include "mlayout/Parser.hpp"
 
 namespace interpreters {
     std::unordered_map<MLayout::Interpreter, std::function<void(MLayout::Layout&, MLayout::CodeGroup*)>> interpreter_registry = {

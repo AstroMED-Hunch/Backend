@@ -1,7 +1,7 @@
-#include "parser.hpp"
-#include <print>
+#include "Parser.hpp"
 #include <stdexcept>
 #include <memory>
+#include <iostream>
 
 namespace MLayout {
     CodeGroup* find_codeset_by_tag(const std::string& tag, Layout* layout) {
@@ -22,6 +22,14 @@ namespace MLayout {
             return Interpreter::INTERPRETER_LAYOUT;
         } else {
             return Interpreter::INTERPRETER_NONE;
+        }
+    }
+
+    const std::string& Layout::get_config_value(const std::string& key) {
+        if (cfg.contains(key)) {
+            return cfg[key];
+        } else {
+            throw std::runtime_error("Config key not found: " + key);
         }
     }
 
@@ -209,7 +217,35 @@ namespace MLayout {
                         throw std::runtime_error("Codeset not found for bind: " + to_cname);
                     }
                     to_codeset->bound_to.push_back(bound_codeset);
-                    std::print("Bound codeset {} to codeset {}\n", to_codeset->tag, bound_codeset->tag);
+                    std::cout << "Bound codeset " << to_codeset->tag << " to codeset " << bound_codeset->tag << std::endl;
+                    ++iter;
+                }
+                else if (sym_token->value == "load_module") {
+                    ++iter;
+                    Variable module_name = get_symbol_value(*iter, env);
+                    if (module_name.type != VariableType::VAR_STRING) {
+                        throw std::runtime_error("Expected string for module name");
+                    }
+                    env.current_layout->module_load_requests.push_back(*(module_name.value.string_value));
+                    ++iter;
+                }
+                else if (sym_token->value == "set_cfg") {
+                    ++iter;
+                    Variable config_key = get_symbol_value(*iter, env);
+                    ++iter;
+                    SymbolToken* to_sym_token = dynamic_cast<SymbolToken*>(*iter);
+                    if (to_sym_token->value != "to") {
+                        throw std::runtime_error("Expected 'to' after bind");
+                    }
+                    ++iter;
+                    Variable config_value = get_symbol_value(*iter, env);
+                    if (config_key.type != VariableType::VAR_STRING) {
+                        throw std::runtime_error("Expected string for config key");
+                    }
+                    if (config_value.type != VariableType::VAR_STRING) {
+                        throw std::runtime_error("Expected string for config value");
+                    }
+                    env.current_layout->cfg[*(config_key.value.string_value)] = *(config_value.value.string_value);
                     ++iter;
                 }
                 else {

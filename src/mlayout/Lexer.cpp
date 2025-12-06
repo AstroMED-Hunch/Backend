@@ -1,4 +1,4 @@
-#include "mlayout/lexer.hpp"
+#include "mlayout/Lexer.hpp"
 #include <fstream>
 
 namespace MLayout {

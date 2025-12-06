@@ -1,10 +1,11 @@
 #pragma once
-#include "lexer.hpp"
-#include "code.hpp"
+#include "Lexer.hpp"
+#include "../modules/aruco/Code.hpp"
 #include <memory>
 #include <unordered_map>
-#include "interpreters.hpp"
-#include "vec.hpp"
+#include "Interpreters.hpp"
+#include "Vec.hpp"
+#include <deque>
 
 namespace MLayout {
     struct Layout; // forward declaration
@@ -23,6 +24,10 @@ namespace MLayout {
     struct Layout : public std::enable_shared_from_this<Layout> {
         std::vector<CodeGroup*> code_groups;
         std::string name;
+        std::unordered_map<std::string, std::string> cfg;
+        std::deque<std::string> module_load_requests;
+
+        const std::string& get_config_value(const std::string& key);
     };
 
     Interpreter get_interpreter_from_string(const std::string& str);
