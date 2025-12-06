@@ -16,10 +16,9 @@ public:
 
     [[nodiscard]] std::string get_module_name() const override;
     void initialize() override;
-    void run() override;
+    void run(cv::Mat cap) override;
     void shutdown() override;
 protected:
-    cv::VideoCapture* cap;
     cv::Ptr<cv::aruco::DetectorParameters> params;
     cv::Ptr<cv::aruco::Dictionary> dictionary = nullptr;
 

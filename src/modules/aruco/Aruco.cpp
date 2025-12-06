@@ -16,28 +16,18 @@ std::string Aruco::get_module_name() const {
 }
 
 void Aruco::initialize() {
-    const std::string camera_index_str = layout->get_config_value("camera_index");
-    const int camera_index = std::stoi(camera_index_str);
-
-    cap = new cv::VideoCapture(camera_index);
-    if (!cap->isOpened()) {
-        throw std::runtime_error("Could not open video capture device: " + std::to_string(camera_index));
-    }
-
     params = cv::makePtr<cv::aruco::DetectorParameters>();
     dictionary = cv::makePtr<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(cv::aruco::DICT_7X7_1000));
     cv::namedWindow("NASA Hunch Debug Window");
 }
 
-void Aruco::run() {
-    cv::Mat frame;
-    cap->read(frame);
+void Aruco::run(cv::Mat cap) {
 
     std::vector<int> marker_ids;
     std::vector<std::vector<cv::Point2f>> marker_corners;
 
     cv::aruco::ArucoDetector detector(*dictionary, *params);
-    detector.detectMarkers(frame, marker_corners, marker_ids);
+    detector.detectMarkers(cap, marker_corners, marker_ids);
 
     for (int marker_id : marker_ids) {
         std::cout << "Detected marker ID: " << marker_id << std::endl;
@@ -59,7 +49,7 @@ void Aruco::run() {
             marker.second->position = Vec2(center_x, center_y);
             marker.second->is_visible = true;
 
-            cv::circle(frame, cv::Point(static_cast<int>(center_x), static_cast<int>(center_y)), 5, cv::Scalar(0, 255, 0), 20);
+            cv::circle(cap, cv::Point(static_cast<int>(center_x), static_cast<int>(center_y)), 5, cv::Scalar(0, 255, 0), 20);
 
             std::printf("Marker %d detected at position (%.2f, %.2f)\n", marker.first, center_x, center_y);
         } else {
@@ -67,7 +57,7 @@ void Aruco::run() {
         }
     }
 
-    cv::imshow("NASA Hunch Debug Window", frame);
+    cv::imshow("NASA Hunch Debug Window", cap);
 }
 
 void Aruco::shutdown() {

@@ -55,9 +55,15 @@ int main(int argc, char** argv) {
 
     modules.shrink_to_fit();
 
+    const std::string camera_index_str = layout->get_config_value("camera_index");
+    const int camera_index = std::stoi(camera_index_str);
+    cv::VideoCapture cap(camera_index);
+
     while (true) {
+        cv::Mat frame;
+        cap >> frame;
         for (const auto& module : modules) {
-            module->run();
+            module->run(frame);
         }
 
         if (cv::waitKey(30) >= 0) break;
