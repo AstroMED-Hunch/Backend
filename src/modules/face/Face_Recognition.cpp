@@ -68,8 +68,6 @@ void Face_Recognition::run(cv::Mat cap) {
             cv::circle(cap, point, 2, cv::Scalar(0, 255, 0), -1);
         }
 
-
-
         std::cout << "Detected face " << i << " with feature vector of size " << feature.total() << std::endl;
     }
 }
