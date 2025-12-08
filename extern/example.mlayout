@@ -6,16 +6,21 @@ create_layout "example" # make a new layout (not needed if file is modifying exi
 summon_layout "example" # we are editing the layout "example" from now on
 
 # CONFIGURATION (GENERAL)
-set_cfg "camera_index" to "0"
+set_cfg "camera_index" to "1"
 
 load_module "aruco" # load the aruco module
 
 # CONFIGURATION (FACE DETECTION)
 load_module "face_recognition" # load the face detection module
 
-# Models
+# MODELS
 set_cfg "face_detection_model" to "../extern/yunet.onnx" # this is the model to crop faces
 set_cfg "face_recognition_model" to "../extern/sface.onnx" # this is the model to categorize faces
+
+# PEOPLE
+
+person "creamy" with_face "../extern/people/creamy.jpeg"
+person "marco" with_face "../extern/people/marco.jpeg"
 
 
 # CODES

@@ -36,6 +36,10 @@ int main(int argc, char** argv) {
         for (const auto& layout_idx : code_group->bound_to) {
             std::cout << "Bound to layout: " << layout_idx->tag.c_str() << std::endl;
         }
+
+        for (const auto& person : layout->people) {
+            std::cout << "Person: " << person.first << " with face: " << person.second << std::endl;
+        }
     }
 
     std::vector<Module*> modules;
@@ -65,6 +69,8 @@ int main(int argc, char** argv) {
         for (const auto& module : modules) {
             module->run(frame);
         }
+
+        cv::imshow("Hunch Medical", frame);
 
         if (cv::waitKey(30) >= 0) break;
     }

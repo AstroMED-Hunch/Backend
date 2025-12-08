@@ -15,7 +15,7 @@ public:
 protected:
     cv::Ptr<cv::FaceDetectorYN> face_detector;
     cv::Ptr<cv::FaceRecognizerSF> face_recognizer;
-
+    std::map<std::string, cv::Mat> known_face_embeddings;
 };
 
 MAKE_MODULE(Face_Recognition, "face_recognition");
