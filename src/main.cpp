@@ -1,5 +1,4 @@
 #include <opencv2/objdetect/aruco_dictionary.hpp>
-#include <print>
 #include <opencv2/objdetect/aruco_detector.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/opencv.hpp>
