@@ -29,6 +29,8 @@ set_cfg "face_recognition_model" to "../extern/sface.onnx"
 person "creamy" with_face "../extern/people/creamy.jpeg"
 person "marco" with_face "../extern/people/marco.jpeg"
 person "creamy" with_face "../extern/people/creamy_2.jpg"
+person "nimul" with_face "../extern/people/nimul.png"
+person "jimmy" with_face "../extern/people/jimmy_y.png"
 
 # MEDICINE AI CONFIGURATION
 
