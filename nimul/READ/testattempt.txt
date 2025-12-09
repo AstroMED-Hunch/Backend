@@ -1,0 +1,31 @@
+#include "MedicineAI.hpp"
+
+int main() {
+    // Access the medicine tracker
+    MedicineAI::MedicineTracker tracker;
+    tracker.LoadFromStorage("./medicine_data");
+    
+    // Generate resupply report
+    int64_t target_date = std::time(nullptr) + (180 * 86400);  // 180 days
+    auto report = tracker.GenerateResupplyReport(target_date, 180);
+    
+    std::cout << "Resupply Recommendations: " << report.recommendations.size() << std::endl;
+    for (const auto& rec : report.recommendations) {
+        std::cout << "  " << rec.medication_name << ": " 
+                  << rec.recommended_amount << " doses" << std::endl;
+    }
+    
+    return 0;
+}
+
+
+
+Place an ArUco marker (ID 0-8) in front of the camera:
+
+excepted output: 
+
+[Aruco] Detected marker ID: 0
+[MedicineAI] Logged pickup: User=crew_alpha, Med=MED001, Amount=1.0, Marker=0
+  -> Predicted daily usage: 0.5 (confidence: 0.3)
+
+

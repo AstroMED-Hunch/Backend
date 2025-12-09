@@ -1,81 +1,166 @@
 named LAYOUT_NAME "example" # variable
 
-# SAMPLE LAYOUT FILE
+# NASA HUNCH ISS MEDICAL TRACKER - CONFIG FILE
+# this cool thing consists of ArUco tracking + Face Recognition + Medicine AI
 
-create_layout "example" # make a new layout (not needed if file is modifying existing layout)
-summon_layout "example" # we are editing the layout "example" from now on
+# Create and select layout
+create_layout "example"
+summon_layout "example"
 
-# CONFIGURATION (GENERAL)
+# config
+
 set_cfg "camera_index" to "1"
 
-load_module "aruco" # load the aruco module
+# load module
 
-# CONFIGURATION (FACE DETECTION)
-load_module "face_recognition" # load the face detection module
+load_module "aruco"              # ArUco marker detection
+load_module "face_recognition"   # Face recognition for user identification
+load_module "medicine_ai"        # AI-powered medicine tracking
 
-# MODELS
-set_cfg "face_detection_model" to "../extern/yunet.onnx" # this is the model to crop faces
-set_cfg "face_recognition_model" to "../extern/sface.onnx" # this is the model to categorize faces
+# facial config
 
-# PEOPLE
+# Model paths
+set_cfg "face_detection_model" to "../extern/yunet.onnx"
+set_cfg "face_recognition_model" to "../extern/sface.onnx"
+
+# CREW MEMBER REGISTRATION
+# Register crew members with their face images
 
 person "creamy" with_face "../extern/people/creamy.jpeg"
 person "marco" with_face "../extern/people/marco.jpeg"
 person "creamy" with_face "../extern/people/creamy_2.jpg"
 
-# CODES
+# MEDICINE AI CONFIGURATION
 
-create_codeset "box_tags" # make a group of codes
-summon_codeset "box_tags" # set it as the current codeset we are editing
+# AI/ML Parameters
+set_cfg "medicine_ai_smoothing_alpha" to "0.3"        # Exponential smoothing factor
+set_cfg "medicine_ai_trend_beta" to "0.1"             # Trend component factor
+set_cfg "medicine_ai_min_samples" to "10"             # Minimum samples for training
+set_cfg "medicine_ai_training_interval" to "24"       # Hours between retraining
 
-interpreter_set "box" # set them to be interpreted by the box recognizer
+# Storage Configuration
+set_cfg "medicine_ai_storage_path" to "./medicine_data/"
 
-# define all the codes to add
-push_code 110
-push_code 230
+# MEDICATION BOX TO MARKER MAPPINGS
+# Maps ArUco marker IDs to medications and users
 
+# Ibuprofen boxes (marker IDs 110, 230)
+set_cfg "marker_110_medication" to "MED001"    # Ibuprofen 200mg
+set_cfg "marker_110_user" to "creamy"
+set_cfg "marker_230_medication" to "MED001"    # Ibuprofen 200mg
+set_cfg "marker_230_user" to "marco"
 
-# SHELVES
+# Aspirin boxes (marker IDs 260, 360)
+set_cfg "marker_260_medication" to "MED002"    # Aspirin 325mg
+set_cfg "marker_260_user" to "creamy"
+set_cfg "marker_360_medication" to "MED002"    # Aspirin 325mg
+set_cfg "marker_360_user" to "marco"
 
-# SHELF 1
+# Acetaminophen boxes (marker IDs 112, 232)
+set_cfg "marker_112_medication" to "MED003"    # Acetaminophen 500mg
+set_cfg "marker_112_user" to "creamy"
+set_cfg "marker_232_medication" to "MED003"    # Acetaminophen 500mg
+set_cfg "marker_232_user" to "marco"
 
-create_codeset "shelf1" # make a group of codes for the shelf
-summon_codeset "shelf1" # set it as the current codeset we are editing
+# Diphenhydramine boxes (marker IDs 262, 332)
+set_cfg "marker_262_medication" to "MED004"    # Diphenhydramine 25mg
+set_cfg "marker_262_user" to "creamy"
+set_cfg "marker_332_medication" to "MED004"    # Diphenhydramine 25mg
+set_cfg "marker_332_user" to "marco"
 
-interpreter_set "shelf" # set them to be interpreted by the shelf recognizer
+# MEDICATION DATABASE INITIALIZATION
+# These medications will be auto-created by the MedicineAI module
 
-# define all the codes to add for the 4 corners
+# MED001: Ibuprofen 200mg Tablet
+# MED002: Aspirin 325mg Tablet
+# MED003: Acetaminophen 500mg Tablet
+# MED004: Diphenhydramine 25mg Capsule
+# (Additional medications can be added through the API)
+
+# ARUCO CODE GROUPS - MEDICATION BOXES
+
+create_codeset "box_tags"
+summon_codeset "box_tags"
+interpreter_set "box"
+
+# Medication box markers
+push_code 110  # Ibuprofen - Creamy
+push_code 230  # Ibuprofen - Marco
+
+# ARUCO CODE GROUPS - SHELVES
+# Each shelf has 4 corner markers for spatial tracking
+
+# SHELF 1 - Primary Medicine Storage
+create_codeset "shelf1"
+summon_codeset "shelf1"
+interpreter_set "shelf"
+
+# Four corner markers for shelf1
 push_code 110
 push_code 230
 push_code 260
 push_code 360
 
-# SHELF 2
+# SHELF 2 - Secondary Medicine Storage
+create_codeset "shelf2"
+summon_codeset "shelf2"
+interpreter_set "shelf"
 
-create_codeset "shelf2" # make a group of codes for the shelf
-summon_codeset "shelf2" # set it as the current codeset we are editing
-
-interpreter_set "shelf" # set them to be interpreted by the shelf recognizer
-
-# define all the codes to add for the 4 corners
+# Four corner markers for shelf2
 push_code 112
 push_code 232
 push_code 262
 push_code 332
 
-# BINDSET
+# LAYOUT BINDING
 
-create_codeset "example" # needs to be same name as file
+create_codeset "example"
 summon_codeset "example"
-
-interpreter_set "layout" # set to be interpreted by the layout recognizer
+interpreter_set "layout"
 
 # FINAL BINDINGS
+# Link medication boxes to shelves, and shelves to main layout
 
-# bind the shelves to the box tags
+# Bind medication boxes to shelves
 bind "box_tags" to "shelf1"
 bind "box_tags" to "shelf2"
 
-#bind the shelves to the layout
+# Bind shelves to main layout
 bind "shelf1" to "example"
 bind "shelf2" to "example"
+
+# resup config
+# Settings for ISS resupply report generation
+
+set_cfg "resupply_mission_duration" to "180"      # Days
+set_cfg "resupply_safety_margin" to "1.2"         # 20% extra
+set_cfg "resupply_auto_generate" to "false"       # Manual generation
+
+# logger config
+
+set_cfg "log_level" to "info"                     # debug, info, warning, error
+set_cfg "log_adherence_events" to "true"          # Log all medication events
+set_cfg "log_predictions" to "false"              # Don't spam with predictions
+
+# MORE ALERT THRESHOLDS
+
+set_cfg "alert_low_stock_threshold" to "10"       # Alert when < 10 doses remain
+set_cfg "alert_adherence_threshold" to "0.85"     # Alert when adherence < 85%
+set_cfg "alert_temperature_threshold" to "80"     # Alert when GPU > 80°C
+
+# NOTES
+
+# This configuration integrates three systems:
+# 1. ArUco Marker Tracking - Detects when medication boxes are moved
+# 2. Face Recognition - Identifies which crew member is taking medication
+# 3. Medicine AI - Tracks usage, predicts needs, generates resupply reports
+#
+# When a crew member picks up a medication box:
+# - ArUco detects the marker ID
+# - Face recognition identifies the person
+# - MedicineAI logs the event and updates predictions
+#
+# To view statistics:
+# Check medicine_data/adherence_logs.csv
+# Generate resupply report through API
+# Yall can monitor live predictions in console output
