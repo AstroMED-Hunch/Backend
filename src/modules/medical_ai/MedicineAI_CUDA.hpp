@@ -3,17 +3,30 @@
 #include <vector>
 #include <memory>
 #include <cstdint>
+#include <string>
+
+// CUDA version compatibility
+#if defined(__CUDACC__)
+    #include <cuda_runtime.h>
+    #if CUDA_VERSION >= 12000
+        // CUDA 12.x specific includes
+        #include <cuda/std/chrono>
+        #define CUDA_VERSION_MAJOR 12
+    #elif CUDA_VERSION >= 11000
+        // CUDA 11.x specific includes
+        #define CUDA_VERSION_MAJOR 11
+    #elif CUDA_VERSION >= 10000
+        // CUDA 10.x specific includes
+        #define CUDA_VERSION_MAJOR 10
+    #endif
+#endif
 
 namespace MedicineAI {
 namespace CUDA {
 
 /**
- * GPU Accelerator for computationally intensive operations made by Nimul Islam 
- * Optimized for NVIDIA Jetson Nano (Maxwell architecture, CUDA Compute 5.3) 
- * 
- * some features:
- * cuBLAS for optimized matrix operations
- * more speed for batch predictions and training
+ * GPU Accelerator for intensive computing operations
+ * Built for NVIDIA Jetson Nano by Nimul Islam
  */
 class GPUAccelerator {
 public:
