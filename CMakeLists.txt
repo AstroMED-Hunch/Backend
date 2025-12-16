@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
-set(HUNCH_SOURCES 
-src/main.cpp
+set(HUNCH_SOURCES
+    src/main.cpp
     src/modules/aruco/Code.cpp
     src/Interpreters.cpp
     src/modules/aruco/Shelf_Bounds.cpp

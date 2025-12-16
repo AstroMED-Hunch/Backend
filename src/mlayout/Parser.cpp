@@ -248,10 +248,28 @@ namespace MLayout {
                     env.current_layout->cfg[*(config_key.value.string_value)] = *(config_value.value.string_value);
                     ++iter;
                 }
+                else if (sym_token->value == "person") {
+                    ++iter;
+                    Variable person_name = get_symbol_value(*iter, env);
+                    ++iter;
+                    SymbolToken* with_sym_token = dynamic_cast<SymbolToken*>(*iter);
+                    if (with_sym_token->value != "with_face") {
+                        throw std::runtime_error("Expected 'with' after person name");
+                    }
+                    ++iter;
+                    Variable person_role = get_symbol_value(*iter, env);
+                    if (person_name.type != VariableType::VAR_STRING) {
+                        throw std::runtime_error("Expected string for person name");
+                    }
+                    if (person_role.type != VariableType::VAR_STRING) {
+                        throw std::runtime_error("Expected string for person role");
+                    }
+                    env.current_layout->people.push_back(std::make_pair(*(person_name.value.string_value), *(person_role.value.string_value)));
+                    ++iter;
+                }
                 else {
                     throw std::runtime_error("Unknown symbol: " + sym_token->value);
                 }
-
             }
             else {
                 throw std::runtime_error("Expected expression, instead got:" + std::to_string(static_cast<int>((*iter)->get_type())) + " at: " + std::to_string(std::distance(tokens.begin(), iter)));
