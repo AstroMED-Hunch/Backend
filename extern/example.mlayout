@@ -25,7 +25,7 @@ set_cfg "face_detection_model" to "../extern/yunet.onnx"
 set_cfg "face_recognition_model" to "../extern/sface.onnx"
 
 #kiosk config
-set_cfg "kiosk_event_ws_uri" to "ws://localhost:8765"
+set_cfg "kiosk_event_ws_uri" to "ws://localhost:3000"
 set_cfg "kiosk_event_ws_timeout_secs" to "30"
 
 # CREW MEMBER REGISTRATION
