@@ -22,6 +22,8 @@ set(HUNCH_SOURCES
     src/modules/face/Face_Recognition.hpp
     src/modules/medical_ai/MedicineAI.cpp
     src/modules/medical_ai/Integration.cpp
+    src/modules/kiosk_comms/KioskEventHandler.cpp
+    src/modules/kiosk_comms/KioskEventHandler.hpp
 )
 
 
@@ -29,11 +31,12 @@ enable_testing()
 
 find_package(OpenCV REQUIRED)
 find_package(dlib REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIRS} dlib::dlib)
+add_subdirectory(extern/libs/IXWebSocket)
+include_directories(${OpenCV_INCLUDE_DIRS} dlib::dlib extern/libs/IXWebSocket/include)
 include_directories("./src/")
 
 add_executable(HunchMedical ${HUNCH_SOURCES})
-target_link_libraries(HunchMedical ${OpenCV_LIBS} dlib::dlib)
+target_link_libraries(HunchMedical ${OpenCV_LIBS} dlib::dlib ixwebsocket)
 
 
 set_property(TARGET HunchMedical PROPERTY COMPILE_WARNING_AS_ERROR ON)

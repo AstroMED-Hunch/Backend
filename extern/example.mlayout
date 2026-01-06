@@ -13,15 +13,20 @@ set_cfg "camera_index" to "1"
 
 # load module
 
-load_module "aruco" # ArUco marker detection
-load_module "face_recognition" # Face recognition for user identification
-load_module "medicine_ai" # AI-powered medicine tracking
+#load_module "aruco" # ArUco marker detection
+#load_module "face_recognition" # Face recognition for user identification
+#load_module "medicine_ai" # AI-powered medicine tracking
+load_module "kiosk_events"
 
 # facial config
 
 # Model paths
 set_cfg "face_detection_model" to "../extern/yunet.onnx"
 set_cfg "face_recognition_model" to "../extern/sface.onnx"
+
+#kiosk config
+set_cfg "kiosk_event_ws_uri" to "ws://localhost:8765"
+set_cfg "kiosk_event_ws_timeout_secs" to "30"
 
 # CREW MEMBER REGISTRATION
 
