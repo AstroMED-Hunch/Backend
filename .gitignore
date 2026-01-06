@@ -1,0 +1,17 @@
+build/
+**/build/
+.cache/
+**/.cache/
+*.idx
+/.idea/.gitignore
+/.idea/.name
+/.idea/copilot.data.migration.agent.xml
+/.idea/copilot.data.migration.ask.xml
+/.idea/copilot.data.migration.ask2agent.xml
+/.idea/copilot.data.migration.edit.xml
+/.idea/editor.xml
+/.idea/Hunch_Medical.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/extern/sface.onnx
+/.idea/vcs.xml
