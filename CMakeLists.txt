@@ -20,17 +20,20 @@ set(HUNCH_SOURCES
     src/modules/aruco/Aruco.hpp
     src/modules/face/Face_Recognition.cpp
     src/modules/face/Face_Recognition.hpp
+    src/modules/medical_ai/MedicineAI.cpp
+    src/modules/medical_ai/Integration.cpp
 )
 
 
 enable_testing()
 
 find_package(OpenCV REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIRS})
+find_package(dlib REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS} dlib::dlib)
 include_directories("./src/")
 
 add_executable(HunchMedical ${HUNCH_SOURCES})
-target_link_libraries(HunchMedical ${OpenCV_LIBS})
+target_link_libraries(HunchMedical ${OpenCV_LIBS} dlib::dlib)
 
 
 set_property(TARGET HunchMedical PROPERTY COMPILE_WARNING_AS_ERROR ON)

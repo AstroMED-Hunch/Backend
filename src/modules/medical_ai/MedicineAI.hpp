@@ -6,11 +6,8 @@
 #include <memory>
 #include <cstdint>
 #include <functional>
+#include <dlib/matrix.h>
 
-// forward declarations to avoid exposing internal dlib types
-namespace dlib {
-    template<typename T> class matrix;
-}
 
 namespace MedicineAI {
 
@@ -432,12 +429,6 @@ private:
 
 } // namespace MedicineAI
 
-// C-COMPATIBLE EXTERNAL API (for integration with marco's system)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Create a new MedicineTracker instance
  * @return Pointer to tracker instance
@@ -687,7 +678,3 @@ int MedicineAI_GetUserAdherenceHistoryCount(void* tracker, const char* user_id);
  */
 int MedicineAI_GetMedicationAdherenceHistoryCount(void* tracker,
                                                   const char* medication_id);
-
-#ifdef __cplusplus
-}
-#endif

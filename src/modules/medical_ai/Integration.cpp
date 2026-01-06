@@ -5,6 +5,7 @@
 #include "mlayout/Parser.hpp"
 #include <iostream>
 #include <chrono>
+#include <fstream>
 #include <map>
 #include <string>
 

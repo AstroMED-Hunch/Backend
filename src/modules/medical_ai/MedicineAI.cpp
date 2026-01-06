@@ -1,5 +1,4 @@
 #include "MedicineAI.hpp"
-#include <dlib/matrix.h>
 #include <dlib/statistics.h>
 #include <dlib/svm.h>
 #include <algorithm>
@@ -13,14 +12,14 @@
 #include <mutex>
 #include <chrono>
 #include <ctime>
+#include <dlib/matrix.h>
 
 namespace MedicineAI {
 
-// Forward declare implementation class
 class MedicineTracker::Impl {
 public:
-    std::mutex data_mutex;
-    std::mutex model_mutex;
+    mutable std::recursive_mutex data_mutex;
+    mutable std::recursive_mutex model_mutex;
     std::map<std::string, std::string> config;
     std::map<std::string, Medication> medication_db;
     std::vector<AdherenceLog> adherence_logs;
@@ -130,7 +129,7 @@ std::vector<double> MedicineTracker::Impl::ExtractFeatures(const std::vector<Adh
     if (!recent.empty()) {
         f[10] = std::accumulate(recent.begin(), recent.end(), 0.0) / recent.size();
         var = 0;
-        for (double r : recent) { double d = r - f[10]; var += d*d; }
+        for (double r : recent) { double d2 = r - f[10]; var += d2*d2; }
         f[11] = std::sqrt(var / recent.size());
     }
     
@@ -142,7 +141,7 @@ std::vector<double> MedicineTracker::Impl::ExtractFeatures(const std::vector<Adh
 }
 
 void MedicineTracker::Impl::TrainUserModel(const std::string& uid) {
-    std::lock_guard<std::mutex> lk(model_mutex);
+    std::lock_guard<std::recursive_mutex> lk(model_mutex);
     auto it = user_logs.find(uid);
     if (it == user_logs.end() || it->second.size() < (size_t)model_params.min_training_samples) return;
     
@@ -174,14 +173,17 @@ void MedicineTracker::Impl::TrainUserModel(const std::string& uid) {
         auto w = inv * dlib::trans(X) * Y;
         
         TrainedModel m;
-        m.weights = w; m.feature_means = means; m.feature_stds = stds; m.is_trained = true;
-        user_models[uid] = m;
+        m.weights = w;
+        m.feature_means = means;
+        m.feature_stds = stds;
+        m.is_trained = true;
+        user_models[uid] = std::move(m);
     } catch (...) {}
 }
 
 PredictionResult MedicineTracker::Impl::PredictWithModel(const std::string& uid,
     const std::string& mid, int64_t ts) const {
-    std::lock_guard<std::mutex> lk(model_mutex);
+    std::lock_guard<std::recursive_mutex> lk(model_mutex);
     PredictionResult res;
     
     auto mit = user_models.find(uid);
@@ -297,7 +299,7 @@ MedicineTracker::MedicineTracker() : pImpl(new Impl()) {}
 MedicineTracker::~MedicineTracker() = default;
 
 void MedicineTracker::LoadConfiguration(std::function<std::string(const std::string&)> cfg) {
-    std::lock_guard<std::mutex> lk(pImpl->data_mutex);
+    std::lock_guard<std::recursive_mutex> lk(pImpl->data_mutex);
     try { pImpl->config["smoothing_alpha"] = cfg("medicine_ai_smoothing_alpha");
           pImpl->model_params.smoothing_alpha = std::stod(pImpl->config["smoothing_alpha"]); }
     catch (...) { pImpl->config["smoothing_alpha"] = "0.3"; pImpl->model_params.smoothing_alpha = 0.3; }
@@ -312,7 +314,7 @@ void MedicineTracker::LoadConfiguration(std::function<std::string(const std::str
 }
 
 void MedicineTracker::SetConfigValue(const std::string& k, const std::string& v) {
-    std::lock_guard<std::mutex> lk(pImpl->data_mutex);
+    std::lock_guard<std::recursive_mutex> lk(pImpl->data_mutex);
     pImpl->config[k] = v;
     if (k == "smoothing_alpha") pImpl->model_params.smoothing_alpha = std::stod(v);
     else if (k == "trend_beta") pImpl->model_params.trend_beta = std::stod(v);
@@ -320,34 +322,34 @@ void MedicineTracker::SetConfigValue(const std::string& k, const std::string& v)
 }
 
 bool MedicineTracker::AddMedication(const Medication& m) {
-    std::lock_guard<std::mutex> lk(pImpl->data_mutex);
+    std::lock_guard<std::recursive_mutex> lk(pImpl->data_mutex);
     if (pImpl->medication_db.find(m.id) != pImpl->medication_db.end()) return false;
     pImpl->medication_db[m.id] = m;
     return true;
 }
 
 bool MedicineTracker::UpdateMedication(const std::string& id, const Medication& m) {
-    std::lock_guard<std::mutex> lk(pImpl->data_mutex);
+    std::lock_guard<std::recursive_mutex> lk(pImpl->data_mutex);
     if (pImpl->medication_db.find(id) == pImpl->medication_db.end()) return false;
     pImpl->medication_db[id] = m;
     return true;
 }
 
 Medication MedicineTracker::GetMedication(const std::string& id) const {
-    std::lock_guard<std::mutex> lk(pImpl->data_mutex);
+    std::lock_guard<std::recursive_mutex> lk(pImpl->data_mutex);
     auto it = pImpl->medication_db.find(id);
     return (it != pImpl->medication_db.end()) ? it->second : Medication();
 }
 
 std::vector<Medication> MedicineTracker::GetAllMedications() const {
-    std::lock_guard<std::mutex> lk(pImpl->data_mutex);
+    std::lock_guard<std::recursive_mutex> lk(pImpl->data_mutex);
     std::vector<Medication> res;
     for (auto& p : pImpl->medication_db) res.push_back(p.second);
     return res;
 }
 
 bool MedicineTracker::RemoveMedication(const std::string& id) {
-    std::lock_guard<std::mutex> lk(pImpl->data_mutex);
+    std::lock_guard<std::recursive_mutex> lk(pImpl->data_mutex);
     return pImpl->medication_db.erase(id) > 0;
 }
 
@@ -362,7 +364,7 @@ void MedicineTracker::LogReturn(const std::string& uid, const std::string& mid, 
 }
 
 void MedicineTracker::LogAdherence(const AdherenceLog& l) {
-    std::lock_guard<std::mutex> lk(pImpl->data_mutex);
+    std::lock_guard<std::recursive_mutex> lk(pImpl->data_mutex);
     pImpl->adherence_logs.push_back(l);
     pImpl->user_logs[l.user_id].push_back(l);
     pImpl->med_logs[l.medication_id].push_back(l);
@@ -375,19 +377,19 @@ void MedicineTracker::LogAdherence(const AdherenceLog& l) {
 }
 
 std::vector<AdherenceLog> MedicineTracker::GetUserAdherenceHistory(const std::string& uid) const {
-    std::lock_guard<std::mutex> lk(pImpl->data_mutex);
+    std::lock_guard<std::recursive_mutex> lk(pImpl->data_mutex);
     auto it = pImpl->user_logs.find(uid);
     return (it != pImpl->user_logs.end()) ? it->second : std::vector<AdherenceLog>();
 }
 
 std::vector<AdherenceLog> MedicineTracker::GetMedicationAdherenceHistory(const std::string& mid) const {
-    std::lock_guard<std::mutex> lk(pImpl->data_mutex);
+    std::lock_guard<std::recursive_mutex> lk(pImpl->data_mutex);
     auto it = pImpl->med_logs.find(mid);
     return (it != pImpl->med_logs.end()) ? it->second : std::vector<AdherenceLog>();
 }
 
 UserStatistics MedicineTracker::GetUserStatistics(const std::string& uid) const {
-    std::lock_guard<std::mutex> lk(pImpl->data_mutex);
+    std::lock_guard<std::recursive_mutex> lk(pImpl->data_mutex);
     UserStatistics s;
     auto it = pImpl->user_logs.find(uid);
     if (it == pImpl->user_logs.end() || it->second.empty()) return s;
@@ -415,7 +417,7 @@ UserStatistics MedicineTracker::GetUserStatistics(const std::string& uid) const 
 }
 
 SystemStatistics MedicineTracker::GetSystemStatistics() const {
-    std::lock_guard<std::mutex> lk(pImpl->data_mutex);
+    std::lock_guard<std::recursive_mutex> lk(pImpl->data_mutex);
     SystemStatistics s;
     std::vector<double> all_doses;
     std::set<std::string> users, meds;
@@ -441,7 +443,7 @@ SystemStatistics MedicineTracker::GetSystemStatistics() const {
 }
 
 double MedicineTracker::CalculateAdherenceRate(const std::string& uid, const std::string& mid, int days) const {
-    std::lock_guard<std::mutex> lk(pImpl->data_mutex);
+    std::lock_guard<std::recursive_mutex> lk(pImpl->data_mutex);
     auto it = pImpl->user_logs.find(uid);
     if (it == pImpl->user_logs.end()) return 0.0;
     
@@ -467,7 +469,7 @@ PredictionResult MedicineTracker::PredictUsage(const std::string& uid, const std
 }
 
 ResupplyReport MedicineTracker::GenerateResupplyReport(int64_t target, int days) const {
-    std::lock_guard<std::mutex> lk(pImpl->data_mutex);
+    std::lock_guard<std::recursive_mutex> lk(pImpl->data_mutex);
     ResupplyReport rep;
     rep.report_timestamp = std::time(nullptr);
     rep.target_shipment_date = target;
@@ -536,8 +538,6 @@ bool MedicineTracker::ExportToCSV(const std::string& path, int64_t start, int64_
 
 } // namespace MedicineAI
 
-// C API
-extern "C" {
 
 void* MedicineAI_CreateTracker() {
     return new MedicineAI::MedicineTracker();
@@ -564,5 +564,3 @@ bool MedicineAI_GenerateResupply(void* t, int64_t target, int days, MedicineAI::
     *out = tracker->GenerateResupplyReport(target, days);
     return true;
 }
-
-} // extern "C"
