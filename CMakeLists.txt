@@ -24,6 +24,11 @@ set(HUNCH_SOURCES
     src/modules/medical_ai/Integration.cpp
     src/modules/kiosk_comms/KioskEventHandler.cpp
     src/modules/kiosk_comms/KioskEventHandler.hpp
+    src/modules/shelf_recognition/ShelfRecognition.cpp
+    src/modules/shelf_recognition/ShelfRecognition.hpp
+    src/main.hpp
+    src/modules/shelf_recognition/GeomUtils.cpp
+    src/modules/shelf_recognition/GeomUtils.hpp
 )
 
 
@@ -32,7 +37,7 @@ enable_testing()
 find_package(OpenCV REQUIRED)
 find_package(dlib REQUIRED)
 add_subdirectory(extern/libs/IXWebSocket)
-include_directories(${OpenCV_INCLUDE_DIRS} dlib::dlib extern/libs/IXWebSocket/include)
+include_directories(${OpenCV_INCLUDE_DIRS} dlib::dlib extern/libs/IXWebSocket/include extern/libs)
 include_directories("./src/")
 
 add_executable(HunchMedical ${HUNCH_SOURCES})

@@ -1,0 +1,4 @@
+nlohmann/json - json library for comms
+OpenCV - computer vision library
+IXWebSocket - used for websockets
+DLib - machine learning library

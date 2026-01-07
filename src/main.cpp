@@ -10,6 +10,11 @@
 #include "modules/aruco/Code.hpp"
 
 constexpr int DEFAULT_CAM_INDEX = 0;
+MLayout::Layout *layout_global = nullptr;
+
+MLayout::Layout& get_global_layout() {
+    return *layout_global;
+}
 
 int main(int argc, char** argv) {
     int cam_index = DEFAULT_CAM_INDEX;
@@ -23,6 +28,7 @@ int main(int argc, char** argv) {
     }
 
     auto layout = MLayout::parse_file("../extern/example.mlayout");
+    layout_global = layout.get();
 
     for (const auto& code_group : layout->code_groups) {
         std::cout << "Code Group: " << code_group->tag << std::endl;
