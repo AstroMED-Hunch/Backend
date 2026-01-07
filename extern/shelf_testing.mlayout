@@ -1,0 +1,57 @@
+named LAYOUT_NAME "example" # variable
+
+# Create and select layout
+create_layout "example"
+summon_layout "example"
+
+# config
+
+set_cfg "camera_index" to "1"
+
+# load module
+
+load_module "aruco" # ArUco marker detection
+load_module "kiosk_events"
+load_module "shelf_recognition"
+
+#kiosk config
+set_cfg "kiosk_event_ws_uri" to "ws://localhost:3000"
+set_cfg "kiosk_event_ws_timeout_secs" to "30"
+
+# ARUCO CODE GROUPS
+
+create_codeset "box_tags"
+summon_codeset "box_tags"
+interpreter_set "box"
+
+# Medication box markers
+push_code 4
+
+# ARUCO CODE GROUPS - SHELVES
+# Codes in shelves act as polygons for spatial tracking
+
+# SHELF 1 - Primary Medicine Storage
+create_codeset "shelf1"
+summon_codeset "shelf1"
+interpreter_set "shelf"
+
+# Four corner markers for shelf1
+push_code 0
+push_code 2
+push_code 6
+push_code 8
+
+# LAYOUT BINDING
+
+create_codeset "example"
+summon_codeset "example"
+interpreter_set "layout"
+
+# FINAL BINDINGS
+# Link medication boxes to shelves, and shelves to main layout
+
+# Bind medication boxes to shelves
+bind "box_tags" to "shelf1"
+
+# Bind shelves to main layout
+bind "shelf1" to "example"

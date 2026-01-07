@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    auto layout = MLayout::parse_file("../extern/example.mlayout");
+    auto layout = MLayout::parse_file("../extern/shelf_testing.mlayout");
     layout_global = layout.get();
 
     for (const auto& code_group : layout->code_groups) {
