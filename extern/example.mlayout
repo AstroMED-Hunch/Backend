@@ -17,6 +17,7 @@ load_module "aruco" # ArUco marker detection
 #load_module "face_recognition" # Face recognition for user identification
 #load_module "medicine_ai" # AI-powered medicine tracking
 load_module "kiosk_events"
+load_module "shelf_recognition"
 
 # facial config
 
