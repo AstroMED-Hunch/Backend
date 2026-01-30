@@ -11,11 +11,13 @@
 #include <ixwebsocket/IXUserAgent.h>
 
 enum class KioskStatus {
-    IDLE
+    IDLE,
+    MULTIPLE_BOXES,
 };
 
 const std::map<KioskStatus, std::string> kiosk_to_str = {
-    {KioskStatus::IDLE, "idle"}
+    {KioskStatus::IDLE, "idle"},
+    {KioskStatus::MULTIPLE_BOXES, "multiple_boxes"},
 };
 
 class KioskEventHandler : public Module {
@@ -31,6 +33,9 @@ public:
     KioskStatus get_status() const;
     void on_box_entered_shelf(int box_code_id, MLayout::CodeGroup* shelf_code_group);
     void on_box_exited_shelf(int box_code_id, MLayout::CodeGroup* shelf_code_group);
+
+    void on_box_entered(int box_code_id);
+    void on_box_exited(int box_code_id);
 protected:
 
     KioskStatus status = KioskStatus::IDLE;
@@ -38,6 +43,7 @@ protected:
     void internal_ws_thread_run();
     ix::WebSocket* ws_socket = nullptr;
     static KioskEventHandler* instance;
+    int last_box_sent = -1;
 };
 
 MAKE_MODULE(KioskEventHandler, "kiosk_events");

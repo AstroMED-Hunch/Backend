@@ -44,14 +44,8 @@ void KioskEventHandler::initialize() {
 
     ws_socket->enableAutomaticReconnection();
     ws_socket->setPingInterval(45);
-    auto result = ws_socket->connect(timeout_secs);
-
-    if (!result.success) {
-        std::cerr << "[KioskEventHandler] WebSocket connection failed: " << result.errorStr << std::endl;
-        return;
-    }
-
-    std::cout << "[KioskEventHandler] WebSocket initialized and connecting to " << ws_url << std::endl;
+    //auto result = ws_socket->connect(timeout_secs);
+    ws_socket->start();
 }
 
 void KioskEventHandler::run(cv::Mat cap) {
@@ -92,17 +86,31 @@ KioskEventHandler* KioskEventHandler::get() {
 }
 
 void KioskEventHandler::on_box_entered_shelf(int box_code_id, MLayout::CodeGroup* shelf_code_group) {
-    nlohmann::json event_msg;
-    event_msg["type"] = "boxEnteredShelf";
-    event_msg["box_code_id"] = box_code_id;
-    event_msg["shelf_code_group"] = shelf_code_group->tag;
-    ws_socket->send(event_msg.dump());
+    // nlohmann::json event_msg;
+    // event_msg["type"] = "boxEnteredShelf";
+    // event_msg["box_code_id"] = box_code_id;
+    // event_msg["shelf_code_group"] = shelf_code_group->tag;
+    // ws_socket->send(event_msg.dump());
 }
 
 void KioskEventHandler::on_box_exited_shelf(int box_code_id, MLayout::CodeGroup* shelf_code_group) {
+    // nlohmann::json event_msg;
+    // event_msg["type"] = "boxExitedShelf";
+    // event_msg["box_code_id"] = box_code_id;
+    // event_msg["shelf_code_group"] = shelf_code_group->tag;
+    // ws_socket->send(event_msg.dump());
+}
+
+void KioskEventHandler::on_box_entered(int box_code_id) {
     nlohmann::json event_msg;
-    event_msg["type"] = "boxExitedShelf";
+    event_msg["type"] = "boxEntered";
     event_msg["box_code_id"] = box_code_id;
-    event_msg["shelf_code_group"] = shelf_code_group->tag;
+    ws_socket->send(event_msg.dump());
+}
+
+void KioskEventHandler::on_box_exited(int box_code_id) {
+    nlohmann::json event_msg;
+    event_msg["type"] = "boxExited";
+    event_msg["box_code_id"] = box_code_id;
     ws_socket->send(event_msg.dump());
 }

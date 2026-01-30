@@ -43,7 +43,7 @@ void Aruco::run(cv::Mat cap) {
     }
 
     for (int marker_id : marker_ids) {
-        std::cout << "Detected marker ID: " << marker_id << std::endl;
+        //std::cout << "Detected marker ID: " << marker_id << std::endl;
     }
 
     for (auto& marker : ArucoMarker::registered_markers) {
@@ -78,7 +78,7 @@ void Aruco::run(cv::Mat cap) {
                 std::cerr << "Warning: computed marker center out of image bounds for marker " << marker.first << " (" << center_x << ", " << center_y << ")\n";
             }
 
-            std::printf("Marker %d detected at position (%.2f, %.2f)\n", marker.first, center_x, center_y);
+            //std::printf("Marker %d detected at position (%.2f, %.2f)\n", marker.first, center_x, center_y);
         } else {
             marker.second->is_visible = false;
         }

@@ -29,6 +29,10 @@ set(HUNCH_SOURCES
     src/main.hpp
     src/modules/shelf_recognition/GeomUtils.cpp
     src/modules/shelf_recognition/GeomUtils.hpp
+    src/ShelfDatabase.cpp
+    src/ShelfDatabase.hpp
+    src/models/BoxEntry.cpp
+    src/models/BoxEntry.hpp
 )
 
 
