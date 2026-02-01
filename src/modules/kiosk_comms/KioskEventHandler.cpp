@@ -15,6 +15,12 @@ std::string KioskEventHandler::get_module_name() const {
     return "KioskEventHandler";
 }
 
+void KioskEventHandler::on_msg(const std::string& msg_type) {
+    if (msg_type == "registerBox") {
+
+    }
+}
+
 void KioskEventHandler::initialize() {
     instance = this;
     ws_socket = new ix::WebSocket();
@@ -29,6 +35,14 @@ void KioskEventHandler::initialize() {
         [](const ix::WebSocketMessagePtr& msg) {
             if (msg->type == ix::WebSocketMessageType::Message) {
                 std::cout << "[KioskEventHandler] Received message: " << msg->str << std::endl;
+                nlohmann::json received_json = nlohmann::json::parse(msg->str, nullptr, false);
+                if (received_json.is_discarded()) {
+                    std::cerr << "[KioskEventHandler] Error parsing JSON message." << std::endl;
+                    return;
+                }
+
+                std::string message = received_json.value("type", "");
+                KioskEventHandler::get()->on_msg(message);
             }
             else if (msg->type == ix::WebSocketMessageType::Open) {
                 std::cout << "[KioskEventHandler] WebSocket connection opened." << std::endl;
@@ -102,6 +116,8 @@ void KioskEventHandler::on_box_exited_shelf(int box_code_id, MLayout::CodeGroup*
 }
 
 void KioskEventHandler::on_box_entered(int box_code_id) {
+    last_box_sent = box_code_id;
+
     nlohmann::json event_msg;
     event_msg["type"] = "boxEntered";
     event_msg["box_code_id"] = box_code_id;

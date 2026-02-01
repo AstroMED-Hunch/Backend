@@ -36,6 +36,8 @@ public:
 
     void on_box_entered(int box_code_id);
     void on_box_exited(int box_code_id);
+
+    void on_msg(const std::string& msg_type);
 protected:
 
     KioskStatus status = KioskStatus::IDLE;
