@@ -5,6 +5,7 @@
 
 #include "Module.hpp"
 #include "Module_Registry.hpp"
+#include "ShelfDatabase.hpp"
 #include "mlayout/Parser.hpp"
 
 #include "modules/aruco/Code.hpp"
@@ -32,6 +33,12 @@ int main(int argc, char** argv) {
 
     for (const auto& code_group : layout->code_groups) {
         std::cout << "Code Group: " << code_group->tag << std::endl;
+
+        if (code_group->interpreter == MLayout::Interpreter::INTERPRETER_SHELF) {
+            ShelfEntry* shelf_entry = new ShelfEntry(code_group->tag);
+            ShelfDatabase::push_shelf_entry(*shelf_entry);
+            std::cout << "Added shelf entry: " << code_group->tag << std::endl;
+        }
 
         std::cout << code_group->markers.size() << std::endl;
         for (const auto& code : code_group->markers) {
