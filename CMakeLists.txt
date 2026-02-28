@@ -33,6 +33,8 @@ set(HUNCH_SOURCES
     src/ShelfDatabase.hpp
     src/models/BoxEntry.cpp
     src/models/BoxEntry.hpp
+    src/modules/rest_handler/RestHandler.cpp
+    src/modules/rest_handler/RestHandler.hpp
 )
 
 
