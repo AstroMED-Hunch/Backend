@@ -13,11 +13,13 @@
 enum class KioskStatus {
     IDLE,
     MULTIPLE_BOXES,
+    SHELVES_FULL,
 };
 
 const std::map<KioskStatus, std::string> kiosk_to_str = {
     {KioskStatus::IDLE, "idle"},
     {KioskStatus::MULTIPLE_BOXES, "multiple_boxes"},
+    {KioskStatus::SHELVES_FULL, "shelves_full"},
 };
 
 class KioskEventHandler : public Module {

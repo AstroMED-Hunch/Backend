@@ -8,6 +8,8 @@
 #include <iostream>
 
 #include "main.hpp"
+#include "ShelfDatabase.hpp"
+#include "models/ShelfEntry.hpp"
 
 KioskEventHandler* KioskEventHandler::instance = nullptr;
 
@@ -17,7 +19,22 @@ std::string KioskEventHandler::get_module_name() const {
 
 void KioskEventHandler::on_msg(const std::string& msg_type) {
     if (msg_type == "registerBox") {
+        int box_being_registered = last_box_sent;
+        auto empty_shelf = ShelfDatabase::get_empty_shelf_entry();
 
+        if (empty_shelf == nullptr) {
+            std::cerr << "[KioskEventHandler] No empty shelf available for box registration." << std::endl;
+            change_status(KioskStatus::SHELVES_FULL);
+            return;
+        }
+        nlohmann::json event_msg;
+        event_msg["type"] = "boxLocation";
+        event_msg["msg"] = empty_shelf->get_shelf_id();
+        ws_socket->send(event_msg.dump());
+
+        ShelfDatabase::set_shelf_box_is_on(empty_shelf->get_shelf_id(), box_being_registered);
+
+        std::cout << "Picked the shelf to place box on: " << empty_shelf->get_shelf_id() << std::endl;
     }
 }
 
