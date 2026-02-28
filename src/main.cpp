@@ -28,7 +28,8 @@ int main(int argc, char** argv) {
         }
     }
 
-    auto layout = MLayout::parse_file("../extern/shelf_testing.mlayout");
+    std::unique_ptr<MLayout::Layout> layout_unique = MLayout::parse_file("../extern/shelf_testing.mlayout");
+    std::shared_ptr<MLayout::Layout> layout = std::move(layout_unique);
     layout_global = layout.get();
 
     for (const auto& code_group : layout->code_groups) {
@@ -60,7 +61,7 @@ int main(int argc, char** argv) {
     for (const auto& module_name : layout->module_load_requests) {
         std::cout << "Attempting to load module: " << module_name << std::endl;
         if (Module* module = Module_Registry::create_module(module_name)) {
-            module->layout = layout.get();
+            module->layout = layout;
             module->initialize();
             modules.push_back(module);
             std::cout << "Loaded module: " << module_name << std::endl;

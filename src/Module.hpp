@@ -7,7 +7,7 @@
 
 class Module {
 public:
-    MLayout::Layout* layout = nullptr;
+    std::shared_ptr<MLayout::Layout> layout = nullptr;
 
     virtual ~Module() = default;
     [[nodiscard]] virtual std::string get_module_name() const;

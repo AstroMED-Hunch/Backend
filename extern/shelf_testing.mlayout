@@ -8,11 +8,16 @@ summon_layout "example"
 
 set_cfg "camera_index" to "1"
 
+# rest endpoints
+set_cfg "rest_host" to "localhost"
+set_cfg "rest_port" to "8000"
+
 # load module
 
 load_module "aruco" # ArUco marker detection
 load_module "kiosk_events"
 load_module "shelf_recognition"
+load_module "rest_handler"
 
 #kiosk config
 set_cfg "kiosk_event_ws_uri" to "ws://localhost:3000"

@@ -2,6 +2,8 @@
 // Created by Marco Stulic on 1/30/26.
 //
 
+#include <memory>
+#include <mutex>
 #include <unordered_map>
 #include <vector>
 
@@ -26,6 +28,7 @@ public:
     static void push_shelf_entry(ShelfEntry &entry);
 private:
     static int box_currently_being_processed;
-    static std::unordered_map<int,BoxEntry> box_db;
+    static std::unordered_map<int,std::shared_ptr<BoxEntry>> box_db;
     static std::unordered_map<std::string, ShelfEntry*> shelf_db;
+    static std::recursive_mutex shelf_db_mutex;
 };

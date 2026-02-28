@@ -3,6 +3,8 @@
 //
 
 #pragma once
+#include <mutex>
+#include <optional>
 #include <string>
 
 
@@ -11,6 +13,7 @@ public:
     using sid = std::optional<std::string>;
     BoxEntry();
     BoxEntry(const std::string& user, int64_t ts, int id, sid shelf);
+    BoxEntry(const BoxEntry& entry);
 
     void set_user_placed(const std::string& user);
     void set_timestamp(int64_t ts);
@@ -29,4 +32,5 @@ private:
     int64_t timestamp;
     sid shelf_id;
     int box_id;
+    mutable std::recursive_mutex mutex;
 };
