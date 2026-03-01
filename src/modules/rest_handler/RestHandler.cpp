@@ -10,6 +10,20 @@
 RestHandler* RestHandler::instance = nullptr;
 
 void RestHandler::start_server() {
+    server->set_pre_routing_handler([this](const httplib::Request &req, httplib::Response &res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+
+        std::cout << "Responded to cors" << std::endl;
+
+        if (req.method == "OPTIONS") {
+            res.status = 204;
+            return httplib::Server::HandlerResponse::Handled;
+        }
+        return httplib::Server::HandlerResponse::Unhandled;
+    });
+
     server->Get("/getShelves", [](const httplib::Request &req, httplib::Response &res) {
         RestHandler::get()->handle_shelf_request(req, res);
     });
@@ -30,6 +44,7 @@ void RestHandler::initialize() {
 
 // this will run multithreaded so we need mutex locking
 void RestHandler::handle_shelf_request(const httplib::Request& req, httplib::Response& res) {
+    std::cout << "yapping shelf request" << std::endl;
     nlohmann::json json;
     std::vector<MLayout::CodeGroup> shelves;
     shelves.reserve(layout->code_groups.size());
@@ -54,6 +69,7 @@ void RestHandler::handle_shelf_request(const httplib::Request& req, httplib::Res
 
     json["shelves"] = shelves_json;
 
+    res.set_header("Content-Type", "application/json");
     res.set_content(json.dump(), "application/json");
 }
 
