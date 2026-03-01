@@ -19,24 +19,29 @@ std::string KioskEventHandler::get_module_name() const {
 
 void KioskEventHandler::on_msg(const std::string& msg_type) {
     if (msg_type == "registerBox") {
-        int box_being_registered = last_box_sent;
-        auto empty_shelf = ShelfDatabase::get_empty_shelf_entry();
+        if (status == KioskStatus::IDLE) {
+            change_status(KioskStatus::FACE_RECOGNITION_BOXENTRY);
+        } else {
+            int box_being_registered = last_box_sent;
+            auto empty_shelf = ShelfDatabase::get_empty_shelf_entry();
 
-        if (empty_shelf == nullptr) {
-            std::cerr << "[KioskEventHandler] No empty shelf available for box registration." << std::endl;
-            change_status(KioskStatus::SHELVES_FULL);
-            return;
+            if (empty_shelf == nullptr) {
+                std::cerr << "[KioskEventHandler] No empty shelf available for box registration." << std::endl;
+                change_status(KioskStatus::SHELVES_FULL);
+                return;
+            }
+            nlohmann::json event_msg;
+            event_msg["type"] = "boxLocation";
+            event_msg["msg"] = empty_shelf->get_shelf_id();
+            ws_socket->send(event_msg.dump());
+
+            ShelfDatabase::set_shelf_box_is_on(empty_shelf->get_shelf_id(), box_being_registered);
+
+            std::cout << "Picked the shelf to place box on: " << empty_shelf->get_shelf_id() << std::endl;
+
+            tell_client_box_update();
+            status = KioskStatus::IDLE; // do not inform
         }
-        nlohmann::json event_msg;
-        event_msg["type"] = "boxLocation";
-        event_msg["msg"] = empty_shelf->get_shelf_id();
-        ws_socket->send(event_msg.dump());
-
-        ShelfDatabase::set_shelf_box_is_on(empty_shelf->get_shelf_id(), box_being_registered);
-
-        std::cout << "Picked the shelf to place box on: " << empty_shelf->get_shelf_id() << std::endl;
-
-        tell_client_box_update();
     }
 }
 
@@ -150,9 +155,17 @@ void KioskEventHandler::tell_client_box_update() {
     ws_socket->send(event_msg.dump());
 }
 
-void KioskEventHandler::on_box_exited(int box_code_id) {
+void KioskEventHandler::on_box_exited(int box_code_id) const {
     nlohmann::json event_msg;
     event_msg["type"] = "boxExited";
     event_msg["message"] = box_code_id;
     ws_socket->send(event_msg.dump());
+}
+
+void KioskEventHandler::send_face_recogniton_update(const std::string& identity) {
+    nlohmann::json event_msg;
+    event_msg["type"] = "faceRecognitionUpdate";
+    event_msg["message"] = identity;
+    ws_socket->send(event_msg.dump());
+    last_seen_identity = identity;
 }

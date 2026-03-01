@@ -5,6 +5,8 @@
 #include <opencv2/face.hpp>
 #include <opencv2/imgcodecs.hpp>
 
+#include "modules/kiosk_comms/KioskEventHandler.hpp"
+
 std::string Face_Recognition::get_module_name() const {
     return "Face Recognition";
 }
@@ -77,6 +79,8 @@ void Face_Recognition::run(cv::Mat cap) {
     if (faces.rows < 1) {
         return;
     }
+    std::vector<std::string> detected_names;
+    detected_names.reserve(faces.rows); // prevent realloc
     for (int i = 0; i < faces.rows; ++i) {
 
         cv::Mat face;
@@ -96,7 +100,7 @@ void Face_Recognition::run(cv::Mat cap) {
 
             double similarity = face_recognizer->match(feature, known_feature, cv::FaceRecognizerSF::FR_COSINE);
 
-            std::cout << name << ": " << similarity << std::endl;
+            // std::cout << name << ": " << similarity << std::endl;
 
             if (similarity > max_similarity) {
                 max_similarity = similarity;
@@ -121,7 +125,17 @@ void Face_Recognition::run(cv::Mat cap) {
             cv::rectangle(cap, box, cv::Scalar(0, 255, 0), 2);
             std::string label = best_name + " (" + std::to_string(max_similarity).substr(0,4) + ")";
             cv::putText(cap, label, cv::Point(box.x, box.y - 10), cv::FONT_HERSHEY_SIMPLEX, 0.9, cv::Scalar(0, 255, 0), 2);
+            detected_names.push_back(best_name);
         }
+    }
+    detected_names.shrink_to_fit();
+
+    if (detected_names.size() > 1) {
+        KioskEventHandler::get()->send_face_recogniton_update("err_multiplicity");
+    } else if (detected_names.size() == 1) {
+        KioskEventHandler::get()->send_face_recogniton_update(detected_names[0]);
+    } else {
+        KioskEventHandler::get()->send_face_recogniton_update("err_nodetect");
     }
 }
 

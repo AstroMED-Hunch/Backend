@@ -18,6 +18,11 @@ load_module "aruco" # ArUco marker detection
 load_module "kiosk_events"
 load_module "shelf_recognition"
 load_module "rest_handler"
+load_module "face_recognition"
+
+# face reg
+set_cfg "face_detection_model" to "../extern/yunet.onnx"
+set_cfg "face_recognition_model" to "../extern/sface.onnx"
 
 #kiosk config
 set_cfg "kiosk_event_ws_uri" to "ws://localhost:3000"
@@ -61,3 +66,13 @@ bind "box_tags" to "shelf1"
 
 # Bind shelves to main layout
 bind "shelf1" to "example"
+
+# Crew Members
+person "kerem" with_face "../extern/people/creamy.jpeg"
+person "marco" with_face "../extern/people/marco.jpeg"
+person "kerem" with_face "../extern/people/creamy_2.jpg"
+person "nimul" with_face "../extern/people/nimul.png"
+person "jimmy" with_face "../extern/people/jimmy_y.png"
+person "kamil" with_face "../extern/people/kamil.png"
+person "lakind" with_face "../extern/people/lakind.png"
+person "abdullah" with_face "../extern/people/abdullah.png"

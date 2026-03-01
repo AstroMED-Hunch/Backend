@@ -14,11 +14,13 @@ enum class KioskStatus {
     IDLE,
     MULTIPLE_BOXES,
     SHELVES_FULL,
+    FACE_RECOGNITION_BOXENTRY
 };
 
 const std::map<KioskStatus, std::string> kiosk_to_str = {
     {KioskStatus::IDLE, "idle"},
     {KioskStatus::MULTIPLE_BOXES, "multiple_boxes"},
+    {KioskStatus::FACE_RECOGNITION_BOXENTRY, "face_recognition_boxentry"},
     {KioskStatus::SHELVES_FULL, "shelves_full"},
 };
 
@@ -39,9 +41,11 @@ public:
     void tell_client_box_update();
 
     void on_box_entered(int box_code_id);
-    void on_box_exited(int box_code_id);
+    void on_box_exited(int box_code_id) const;
 
     void on_msg(const std::string& msg_type);
+
+    void send_face_recogniton_update(const std::string& identity);
 protected:
 
     KioskStatus status = KioskStatus::IDLE;
@@ -50,6 +54,7 @@ protected:
     ix::WebSocket* ws_socket = nullptr;
     static KioskEventHandler* instance;
     int last_box_sent = -1;
+    std::string last_seen_identity = "err_nodetect";
 };
 
 MAKE_MODULE(KioskEventHandler, "kiosk_events");
