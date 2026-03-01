@@ -248,6 +248,25 @@ namespace MLayout {
                     env.current_layout->cfg[*(config_key.value.string_value)] = *(config_value.value.string_value);
                     ++iter;
                 }
+                else if (sym_token->value == "box_pretty_name") {
+                    ++iter;
+                    Variable marker_id = get_symbol_value(*iter, env);
+                    ++iter;
+                    SymbolToken* to_sym_token = dynamic_cast<SymbolToken*>(*iter);
+                    if (to_sym_token->value != "is") {
+                        throw std::runtime_error("Expected 'is' after box_pretty_name");
+                    }
+                    ++iter;
+                    Variable pretty_name = get_symbol_value(*iter, env);
+                    if (marker_id.type != VariableType::VAR_INT) {
+                        throw std::runtime_error("Expected integer for marker ID");
+                    }
+                    if (pretty_name.type != VariableType::VAR_STRING) {
+                        throw std::runtime_error("Expected string for pretty name");
+                    }
+                    env.current_layout->marker_id_to_pretty_name[marker_id.value.int_value] = *(pretty_name.value.string_value);
+                    ++iter;
+                }
                 else if (sym_token->value == "person") {
                     ++iter;
                     Variable person_name = get_symbol_value(*iter, env);

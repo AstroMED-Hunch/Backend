@@ -36,6 +36,8 @@ public:
     void on_box_entered_shelf(int box_code_id, MLayout::CodeGroup* shelf_code_group);
     void on_box_exited_shelf(int box_code_id, MLayout::CodeGroup* shelf_code_group);
 
+    void tell_client_box_update();
+
     void on_box_entered(int box_code_id);
     void on_box_exited(int box_code_id);
 

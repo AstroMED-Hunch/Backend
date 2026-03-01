@@ -63,6 +63,11 @@ void RestHandler::handle_shelf_request(const httplib::Request& req, httplib::Res
         auto occupant = ShelfDatabase::get_box_entry_shelf(shelf.tag);
         std::cout << "Shelf " << shelf.tag << " is occupied: " << occupant << std::endl;
         shelf_json["box_id"] = occupant != nullptr ? occupant->get_box_id() : -1;
+
+        int occupant_id = occupant != nullptr ? occupant->get_box_id() : -1;
+        std::string pretty_name_box = layout->marker_id_to_pretty_name[occupant_id];
+        shelf_json["box_pretty_name"] = pretty_name_box;
+
         shelves_json.push_back(shelf_json);
     }
     shelves_json.shrink_to_fit();

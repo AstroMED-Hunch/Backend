@@ -27,6 +27,7 @@ namespace MLayout {
         std::unordered_map<std::string, std::string> cfg;
         std::deque<std::string> module_load_requests;
         std::vector<std::pair<std::string, std::string>> people;
+        std::unordered_map<int, std::string> marker_id_to_pretty_name;
 
         const std::string& get_config_value(const std::string& key);
     };

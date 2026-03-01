@@ -30,7 +30,8 @@ summon_codeset "box_tags"
 interpreter_set "box"
 
 # Medication box markers
-push_code 4
+push_code 0
+box_pretty_name 0 is "Medication Box A"
 
 # ARUCO CODE GROUPS - SHELVES
 # Codes in shelves act as polygons for spatial tracking

@@ -35,6 +35,8 @@ void KioskEventHandler::on_msg(const std::string& msg_type) {
         ShelfDatabase::set_shelf_box_is_on(empty_shelf->get_shelf_id(), box_being_registered);
 
         std::cout << "Picked the shelf to place box on: " << empty_shelf->get_shelf_id() << std::endl;
+
+        tell_client_box_update();
     }
 }
 
@@ -138,6 +140,13 @@ void KioskEventHandler::on_box_entered(int box_code_id) {
     nlohmann::json event_msg;
     event_msg["type"] = "boxEntered";
     event_msg["message"] = box_code_id;
+    ws_socket->send(event_msg.dump());
+}
+
+void KioskEventHandler::tell_client_box_update() {
+    nlohmann::json event_msg;
+    event_msg["type"] = "boxUpdate";
+    event_msg["box_code_id"] = last_box_sent;
     ws_socket->send(event_msg.dump());
 }
 

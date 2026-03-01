@@ -55,6 +55,10 @@ int main(int argc, char** argv) {
         }
     }
 
+    for (const auto& [marker_id, pretty_name] : layout->marker_id_to_pretty_name) {
+        std::cout << "Marker ID " << marker_id << " has pretty name: " << pretty_name << std::endl;
+    }
+
     std::vector<Module*> modules;
     modules.reserve(layout->module_load_requests.size());
 
