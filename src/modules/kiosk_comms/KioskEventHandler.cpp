@@ -137,13 +137,13 @@ void KioskEventHandler::on_box_entered(int box_code_id) {
 
     nlohmann::json event_msg;
     event_msg["type"] = "boxEntered";
-    event_msg["box_code_id"] = box_code_id;
+    event_msg["message"] = box_code_id;
     ws_socket->send(event_msg.dump());
 }
 
 void KioskEventHandler::on_box_exited(int box_code_id) {
     nlohmann::json event_msg;
     event_msg["type"] = "boxExited";
-    event_msg["box_code_id"] = box_code_id;
+    event_msg["message"] = box_code_id;
     ws_socket->send(event_msg.dump());
 }

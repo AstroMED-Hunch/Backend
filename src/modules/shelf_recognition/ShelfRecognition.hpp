@@ -3,7 +3,9 @@
 //
 
 #pragma once
+#include <limits>
 #include <map>
+#include <unordered_set>
 #include <opencv2/core/utility.hpp>
 
 #include "Module.hpp"
@@ -21,9 +23,10 @@ public:
 
     void shutdown() override;
 protected:
-    std::unordered_map<int, std::string> marker_shelf_mappings; // what shelf each box is on
+    std::unordered_map<int, std::string> marker_shelf_mappings;
     std::unordered_map<int, double> marker_last_found_time;
-    double currently_processing_last_seen_time = 0.0;
+    double currently_processing_last_seen_time = std::numeric_limits<double>::max();
+    std::unordered_set<int> seen_box_ids;
 };
 
 MAKE_MODULE(ShelfRecognition, "shelf_recognition");
