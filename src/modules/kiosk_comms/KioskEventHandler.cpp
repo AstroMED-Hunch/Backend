@@ -17,7 +17,7 @@ std::string KioskEventHandler::get_module_name() const {
     return "KioskEventHandler";
 }
 
-void KioskEventHandler::on_msg(const std::string& msg_type) {
+void KioskEventHandler::on_msg(const std::string& msg_type, std::string content) {
     if (msg_type == "registerBox") {
         if (status == KioskStatus::IDLE) {
             change_status(KioskStatus::FACE_RECOGNITION_BOXENTRY);
@@ -41,6 +41,37 @@ void KioskEventHandler::on_msg(const std::string& msg_type) {
 
             tell_client_box_update();
             status = KioskStatus::IDLE; // do not inform
+        }
+    } else if (msg_type == "registerBoxExit") {
+        if (status == KioskStatus::IDLE) {
+            change_status(KioskStatus::FACE_RECOGNITION_BOXEXIT);
+        } else {
+            try {
+                std::string shelf_being_checked_out = content;
+                auto shelf_entry = ShelfDatabase::get_shelf_entry(shelf_being_checked_out);
+                if (shelf_entry == nullptr) {
+                    std::cerr << "[KioskEventHandler] Shelf not found for box exit: " << shelf_being_checked_out << std::endl;
+                    change_status(KioskStatus::IDLE);
+                    return;
+                }
+                BoxEntry* box_on_shelf = ShelfDatabase::get_box_on_shelf(shelf_being_checked_out);
+                if (box_on_shelf == nullptr) {
+                    std::cerr << "[KioskEventHandler] No box found on shelf for box exit: " << shelf_being_checked_out << std::endl;
+                    change_status(KioskStatus::IDLE);
+                    return;
+                }
+                int box_being_registered = box_on_shelf->get_box_id();
+                ShelfDatabase::set_shelf_box_is_on("", box_being_registered);
+
+                std::cout << "Box exited, removed from shelf: " << box_being_registered << std::endl;
+
+                tell_client_box_update();
+                change_status(KioskStatus::IDLE); // do not inform
+            } catch (const std::exception& e) {
+                change_status(KioskStatus::IDLE);
+                std::cerr << "[KioskEventHandler] Error handling registerBoxExit message: " << e.what() << std::endl;
+            }
+
         }
     }
 }
@@ -66,7 +97,8 @@ void KioskEventHandler::initialize() {
                 }
 
                 std::string message = received_json.value("type", "");
-                KioskEventHandler::get()->on_msg(message);
+                std::string content = received_json.value("message", "");
+                KioskEventHandler::get()->on_msg(message, content);
             }
             else if (msg->type == ix::WebSocketMessageType::Open) {
                 std::cout << "[KioskEventHandler] WebSocket connection opened." << std::endl;

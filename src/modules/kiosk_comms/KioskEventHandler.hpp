@@ -14,7 +14,8 @@ enum class KioskStatus {
     IDLE,
     MULTIPLE_BOXES,
     SHELVES_FULL,
-    FACE_RECOGNITION_BOXENTRY
+    FACE_RECOGNITION_BOXENTRY,
+    FACE_RECOGNITION_BOXEXIT
 };
 
 const std::map<KioskStatus, std::string> kiosk_to_str = {
@@ -22,6 +23,7 @@ const std::map<KioskStatus, std::string> kiosk_to_str = {
     {KioskStatus::MULTIPLE_BOXES, "multiple_boxes"},
     {KioskStatus::FACE_RECOGNITION_BOXENTRY, "face_recognition_boxentry"},
     {KioskStatus::SHELVES_FULL, "shelves_full"},
+    {KioskStatus::FACE_RECOGNITION_BOXEXIT, "face_recognition_boxexit"}
 };
 
 class KioskEventHandler : public Module {
@@ -43,7 +45,7 @@ public:
     void on_box_entered(int box_code_id);
     void on_box_exited(int box_code_id) const;
 
-    void on_msg(const std::string& msg_type);
+    void on_msg(const std::string& msg_type, std::string content);
 
     void send_face_recogniton_update(const std::string& identity);
 protected:

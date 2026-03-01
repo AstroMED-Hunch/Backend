@@ -22,6 +22,24 @@ BoxEntry* ShelfDatabase::get_box_entry(const int box_id) {
     return nullptr;
 }
 
+ShelfEntry* ShelfDatabase::get_shelf_entry(const std::string& shelf_id) {
+    std::lock_guard<std::recursive_mutex> lock(shelf_db_mutex);
+    if (shelf_db.contains(shelf_id)) {
+        return shelf_db[shelf_id];
+    }
+    return nullptr;
+}
+
+BoxEntry* ShelfDatabase::get_box_on_shelf(const std::string& shelf_id) {
+    std::lock_guard<std::recursive_mutex> lock(shelf_db_mutex);
+    for (const auto& [key, entry] : box_db) {
+        if (entry->get_shelf_id() == shelf_id) {
+            return entry.get();
+        }
+    }
+    return nullptr;
+}
+
 BoxEntry* ShelfDatabase::get_box_entry_shelf(std::string shelf_id) {
     std::lock_guard<std::recursive_mutex> lock(shelf_db_mutex);
     for (const auto& [key, entry] : box_db) {

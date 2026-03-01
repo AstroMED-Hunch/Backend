@@ -16,6 +16,8 @@ public:
     [[nodiscard]] static BoxEntry* get_box_entry_shelf(std::string shelf_id);
     [[nodiscard]] static bool is_shelf_occupied(const std::string& shelf_id);
     [[nodiscard]] static ShelfEntry* get_empty_shelf_entry();
+    [[nodiscard]] static ShelfEntry* get_shelf_entry(const std::string& shelf_id);
+    [[nodiscard]] static BoxEntry* get_box_on_shelf(const std::string& shelf_id);
     static void set_shelf_box_is_on(const std::string& shelf_id, int box_id);
     static void put_box_entry(const BoxEntry& entry);
 
