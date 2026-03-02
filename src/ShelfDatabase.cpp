@@ -8,6 +8,8 @@
 #include <ranges>
 #include <opencv2/core/utility.hpp>
 
+#include "modules/audit_log/AuditLog.hpp"
+
 std::unordered_map<int, std::shared_ptr<BoxEntry>> ShelfDatabase::box_db;
 std::recursive_mutex ShelfDatabase::shelf_db_mutex;
 std::unordered_map<std::string, ShelfEntry*> ShelfDatabase::shelf_db;
@@ -70,6 +72,9 @@ std::vector<BoxEntry*> ShelfDatabase::get_all_entries() {
 void ShelfDatabase::pop_box_entry(const int box_id) {
     std::lock_guard<std::recursive_mutex> lock(shelf_db_mutex);
     box_db.erase(box_id);
+    if (AuditLog::get() != nullptr) {
+        AuditLog::get()->add_log_entry("Box " + std::to_string(box_id) + " removed from database");
+    }
 }
 
 int ShelfDatabase::get_box_currently_being_processed() {
@@ -119,9 +124,17 @@ void ShelfDatabase::set_shelf_box_is_on(const std::string& shelf_id, int box_id,
         box_db.at(box_id)->set_shelf_id(shelf_id);
         box_db.at(box_id)->set_user_placed(user);
         std::cout << "Updated box entry for box " << box_id << " to be on shelf " << shelf_id << std::endl;
+        if (AuditLog::get() != nullptr && !shelf_id.empty()) {
+            AuditLog::get()->add_log_entry("Box " + std::to_string(box_id) + " placed on shelf " + shelf_id + " by " + user);
+        } else if (AuditLog::get() != nullptr) {
+            AuditLog::get()->add_log_entry("Box " + std::to_string(box_id) + " removed from shelf");
+        }
     } else {
         const auto new_entry = std::make_shared<BoxEntry>(user,cv::getTickCount(), box_id, shelf_id);
         box_db[box_id] = new_entry;
         std::cout << "Created new box entry for box " << box_id << " on shelf " << shelf_id << std::endl;
+        if (AuditLog::get() != nullptr && !shelf_id.empty()) {
+            AuditLog::get()->add_log_entry("New box " + std::to_string(box_id) + " created and placed on shelf " + shelf_id + " by " + user);
+        }
     }
 }

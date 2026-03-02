@@ -10,6 +10,7 @@
 #include "main.hpp"
 #include "ShelfDatabase.hpp"
 #include "models/ShelfEntry.hpp"
+#include "modules/audit_log/AuditLog.hpp"
 
 KioskEventHandler* KioskEventHandler::instance = nullptr;
 
@@ -27,6 +28,9 @@ void KioskEventHandler::on_msg(const std::string& msg_type, std::string content)
 
             if (empty_shelf == nullptr) {
                 std::cerr << "[KioskEventHandler] No empty shelf available for box registration." << std::endl;
+                if (AuditLog::get() != nullptr) {
+                    AuditLog::get()->add_log_entry("ERROR: No empty shelf available for box registration");
+                }
                 change_status(KioskStatus::SHELVES_FULL);
                 return;
             }
@@ -38,6 +42,9 @@ void KioskEventHandler::on_msg(const std::string& msg_type, std::string content)
             ShelfDatabase::set_shelf_box_is_on(empty_shelf->get_shelf_id(), box_being_registered, last_seen_identity);
 
             std::cout << "Picked the shelf to place box on: " << empty_shelf->get_shelf_id() << std::endl;
+            if (AuditLog::get() != nullptr) {
+                AuditLog::get()->add_log_entry("Box " + std::to_string(box_being_registered) + " registered by " + last_seen_identity + " on shelf " + empty_shelf->get_shelf_id());
+            }
 
             tell_client_box_update();
             status = KioskStatus::IDLE; // do not inform
@@ -51,12 +58,18 @@ void KioskEventHandler::on_msg(const std::string& msg_type, std::string content)
                 auto shelf_entry = ShelfDatabase::get_shelf_entry(shelf_being_checked_out);
                 if (shelf_entry == nullptr) {
                     std::cerr << "[KioskEventHandler] Shelf not found for box exit: " << shelf_being_checked_out << std::endl;
+                    if (AuditLog::get() != nullptr) {
+                        AuditLog::get()->add_log_entry("ERROR: Shelf not found for box exit: " + shelf_being_checked_out);
+                    }
                     change_status(KioskStatus::IDLE);
                     return;
                 }
                 BoxEntry* box_on_shelf = ShelfDatabase::get_box_on_shelf(shelf_being_checked_out);
                 if (box_on_shelf == nullptr) {
                     std::cerr << "[KioskEventHandler] No box found on shelf for box exit: " << shelf_being_checked_out << std::endl;
+                    if (AuditLog::get() != nullptr) {
+                        AuditLog::get()->add_log_entry("ERROR: No box found on shelf for box exit: " + shelf_being_checked_out);
+                    }
                     change_status(KioskStatus::IDLE);
                     return;
                 }
@@ -64,12 +77,18 @@ void KioskEventHandler::on_msg(const std::string& msg_type, std::string content)
                 ShelfDatabase::set_shelf_box_is_on("", box_being_registered, "");
 
                 std::cout << "Box exited, removed from shelf: " << box_being_registered << std::endl;
+                if (AuditLog::get() != nullptr) {
+                    AuditLog::get()->add_log_entry("Box " + std::to_string(box_being_registered) + " checked out by " + last_seen_identity + " from shelf " + shelf_being_checked_out);
+                }
 
                 tell_client_box_update();
                 change_status(KioskStatus::IDLE); // do not inform
             } catch (const std::exception& e) {
                 change_status(KioskStatus::IDLE);
                 std::cerr << "[KioskEventHandler] Error handling registerBoxExit message: " << e.what() << std::endl;
+                if (AuditLog::get() != nullptr) {
+                    AuditLog::get()->add_log_entry("ERROR: Exception in registerBoxExit: " + std::string(e.what()));
+                }
             }
 
         }
@@ -133,6 +152,10 @@ void KioskEventHandler::change_status(KioskStatus new_status) {
     status_msg["type"] = "statusUpdate";
     status_msg["status"] = status_to_str(new_status);
     ws_socket->send(status_msg.dump());
+
+    if (AuditLog::get() != nullptr) {
+        AuditLog::get()->add_log_entry("Status changed to: " + status_to_str(new_status));
+    }
 }
 
 KioskStatus KioskEventHandler::get_status() const {
@@ -178,6 +201,10 @@ void KioskEventHandler::on_box_entered(int box_code_id) {
     event_msg["type"] = "boxEntered";
     event_msg["message"] = box_code_id;
     ws_socket->send(event_msg.dump());
+
+    if (AuditLog::get() != nullptr) {
+        AuditLog::get()->add_log_entry("Box " + std::to_string(box_code_id) + " entered the system");
+    }
 }
 
 void KioskEventHandler::tell_client_box_update() {
@@ -192,6 +219,10 @@ void KioskEventHandler::on_box_exited(int box_code_id) const {
     event_msg["type"] = "boxExited";
     event_msg["message"] = box_code_id;
     ws_socket->send(event_msg.dump());
+
+    if (AuditLog::get() != nullptr) {
+        AuditLog::get()->add_log_entry("Box " + std::to_string(box_code_id) + " exited the system");
+    }
 }
 
 void KioskEventHandler::send_face_recogniton_update(const std::string& identity) {

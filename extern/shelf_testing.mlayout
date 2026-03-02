@@ -19,6 +19,7 @@ load_module "kiosk_events"
 load_module "shelf_recognition"
 load_module "rest_handler"
 load_module "face_recognition"
+load_module "audit_log"
 
 # face reg
 set_cfg "face_detection_model" to "../extern/yunet.onnx"

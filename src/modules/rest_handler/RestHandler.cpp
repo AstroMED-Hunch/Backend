@@ -7,6 +7,8 @@
 #include "json.hpp"
 #include "ShelfDatabase.hpp"
 #include "modules/kiosk_comms/KioskEventHandler.hpp"
+#include "modules/audit_log/AuditLog.hpp"
+#include <sstream>
 
 RestHandler* RestHandler::instance = nullptr;
 
@@ -27,6 +29,10 @@ void RestHandler::start_server() {
 
     server->Get("/getShelves", [](const httplib::Request &req, httplib::Response &res) {
         RestHandler::get()->handle_shelf_request(req, res);
+    });
+
+    server->Get("/getAuditLog", [](const httplib::Request &req, httplib::Response &res) {
+        RestHandler::get()->handle_audit_log_request(req, res);
     });
 
     server->Get("/systemHealth", [](const httplib::Request &req, httplib::Response &res) {
@@ -108,3 +114,31 @@ void RestHandler::shutdown() {
 RestHandler* RestHandler::get() {
     return instance;
 }
+
+void RestHandler::handle_audit_log_request(const httplib::Request& req, httplib::Response& res) {
+    nlohmann::json json;
+
+    if (AuditLog::get() != nullptr) {
+        std::string log_content = AuditLog::get()->get_log();
+        std::vector<std::string> log_entries;
+
+        std::stringstream ss(log_content);
+        std::string line;
+        while (std::getline(ss, line)) {
+            if (!line.empty()) {
+                log_entries.push_back(line);
+            }
+        }
+
+        json["entries"] = log_entries;
+        json["total_entries"] = log_entries.size();
+    } else {
+        json["error"] = "Audit log module not initialized";
+        json["entries"] = nlohmann::json::array();
+        json["total_entries"] = 0;
+    }
+
+    res.set_header("Content-Type", "application/json");
+    res.set_content(json.dump(), "application/json");
+}
+

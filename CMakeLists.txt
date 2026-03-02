@@ -37,6 +37,8 @@ set(HUNCH_SOURCES
     src/models/ShelfEntry.hpp
     src/modules/rest_handler/RestHandler.cpp
     src/modules/rest_handler/RestHandler.hpp
+    src/modules/audit_log/AuditLog.cpp
+    src/modules/audit_log/AuditLog.hpp
 )
 
 

@@ -22,6 +22,7 @@ public:
     void start_server();
 
     void handle_shelf_request(const httplib::Request& req, httplib::Response& res);
+    void handle_audit_log_request(const httplib::Request& req, httplib::Response& res);
 protected:
     static RestHandler* instance;
     std::unique_ptr<httplib::Server> server{};
