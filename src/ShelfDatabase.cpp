@@ -107,7 +107,7 @@ void ShelfDatabase::push_shelf_entry(ShelfEntry &entry) {
     shelf_db[entry.get_shelf_id()] = &entry;
 }
 
-void ShelfDatabase::set_shelf_box_is_on(const std::string& shelf_id, int box_id) {
+void ShelfDatabase::set_shelf_box_is_on(const std::string& shelf_id, int box_id, const std::string& user) {
     std::lock_guard<std::recursive_mutex> lock(shelf_db_mutex);
     for (auto& [id, entry] : box_db) {
         if (entry->get_shelf_id() == shelf_id) {
@@ -117,9 +117,10 @@ void ShelfDatabase::set_shelf_box_is_on(const std::string& shelf_id, int box_id)
 
     if (box_db.contains(box_id)) {
         box_db.at(box_id)->set_shelf_id(shelf_id);
+        box_db.at(box_id)->set_user_placed(user);
         std::cout << "Updated box entry for box " << box_id << " to be on shelf " << shelf_id << std::endl;
     } else {
-        const auto new_entry = std::make_shared<BoxEntry>("",cv::getTickCount(), box_id, shelf_id);
+        const auto new_entry = std::make_shared<BoxEntry>(user,cv::getTickCount(), box_id, shelf_id);
         box_db[box_id] = new_entry;
         std::cout << "Created new box entry for box " << box_id << " on shelf " << shelf_id << std::endl;
     }

@@ -6,6 +6,7 @@
 #include "httplib.h"
 #include "json.hpp"
 #include "ShelfDatabase.hpp"
+#include "modules/kiosk_comms/KioskEventHandler.hpp"
 
 RestHandler* RestHandler::instance = nullptr;
 
@@ -26,6 +27,23 @@ void RestHandler::start_server() {
 
     server->Get("/getShelves", [](const httplib::Request &req, httplib::Response &res) {
         RestHandler::get()->handle_shelf_request(req, res);
+    });
+
+    server->Get("/systemHealth", [](const httplib::Request &req, httplib::Response &res) {
+        nlohmann::json json;
+        json["status"] = "ok"; // always return ok so it knows we are connected
+        res.set_header("Content-Type", "application/json");
+        res.set_content(json.dump(), "application/json");
+    });
+
+    server->Delete("/clearShelf", [](const httplib::Request &req, httplib::Response &res) {
+        std::string shelf_id = req.get_param_value("shelf_id");
+        ShelfDatabase::set_shelf_box_is_on(shelf_id, -1, "");
+        nlohmann::json json;
+        json["status"] = "ok";
+        res.set_header("Content-Type", "application/json");
+        res.set_content(json.dump(), "application/json");
+        KioskEventHandler::get()->tell_client_box_update();
     });
 
     std::string host = layout->get_config_value("rest_host");
@@ -63,6 +81,7 @@ void RestHandler::handle_shelf_request(const httplib::Request& req, httplib::Res
         auto occupant = ShelfDatabase::get_box_entry_shelf(shelf.tag);
         std::cout << "Shelf " << shelf.tag << " is occupied: " << occupant << std::endl;
         shelf_json["box_id"] = occupant != nullptr ? occupant->get_box_id() : -1;
+        shelf_json["registrant"] = occupant != nullptr ? occupant->get_user_placed() : "";
 
         int occupant_id = occupant != nullptr ? occupant->get_box_id() : -1;
         std::string pretty_name_box = layout->marker_id_to_pretty_name[occupant_id];

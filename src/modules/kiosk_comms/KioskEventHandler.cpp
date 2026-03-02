@@ -35,7 +35,7 @@ void KioskEventHandler::on_msg(const std::string& msg_type, std::string content)
             event_msg["msg"] = empty_shelf->get_shelf_id();
             ws_socket->send(event_msg.dump());
 
-            ShelfDatabase::set_shelf_box_is_on(empty_shelf->get_shelf_id(), box_being_registered);
+            ShelfDatabase::set_shelf_box_is_on(empty_shelf->get_shelf_id(), box_being_registered, last_seen_identity);
 
             std::cout << "Picked the shelf to place box on: " << empty_shelf->get_shelf_id() << std::endl;
 
@@ -61,7 +61,7 @@ void KioskEventHandler::on_msg(const std::string& msg_type, std::string content)
                     return;
                 }
                 int box_being_registered = box_on_shelf->get_box_id();
-                ShelfDatabase::set_shelf_box_is_on("", box_being_registered);
+                ShelfDatabase::set_shelf_box_is_on("", box_being_registered, "");
 
                 std::cout << "Box exited, removed from shelf: " << box_being_registered << std::endl;
 
