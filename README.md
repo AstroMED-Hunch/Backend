@@ -2,8 +2,8 @@
 
 # Hunch Backend Setup
 
-'astroMed's Hunch Medical setup is a modular computer vision and AI-powered system designed for intelligent shelf and inventory management in medical environments.'
-It provides real-time shelf monitoring and analysis using optical recognition, ArUco markers, face detection, and medical AI inference. We introduce our specialized medicineAI framework for ML & smart mangement. 
+'The ASTROMED Hunch Medical setup is a modular computer vision and AI-powered system designed for intelligent shelf and inventory management in medical environments.'
+It provides real-time shelf monitoring and analysis using optical recognition, ArUco markers, face detection, and medical AI inference. We introduce our specialized medicineAI framework for ML & smart mangement.' 
 
 This system integrates:
 
