@@ -1,5 +1,3 @@
----
-
 # Hunch Backend Setup
 
 The ASTROMED Hunch Medical setup is a modular computer vision and AI-powered system designed for intelligent shelf and inventory management in medical environments.'
@@ -17,7 +15,6 @@ This system integrates:
 
 > CUDA files exist in the repository but are **not used** in this version. Ignore all CUDA-related files during setup.
 
----
 
 ## Project Structure
 
