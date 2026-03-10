@@ -28,6 +28,7 @@ set_cfg "face_recognition_model" to "../extern/sface.onnx"
 
 # pill rec
 set_cfg "pill_detector_model" to "../extern/astromed.onnx"
+set_cfg "pill_images_dir" to "../extern/pill_images/"
 
 #kiosk config
 set_cfg "kiosk_event_ws_uri" to "ws://localhost:3000"

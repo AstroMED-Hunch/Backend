@@ -32,6 +32,35 @@ void PillDetector::initialize() {
         std::cerr << "PillDetector: Failed to load model from " << model_path << ": " << e.what() << std::endl;
     }
 
+    orb = cv::ORB::create(1000);
+    matcher = cv::BFMatcher(cv::NORM_HAMMING, true);
+
+
+}
+
+int PillDetector::get_match_score(const cv::Mat& descriptors_scene, const std::string& pill_name) {
+    if (pill_ref_images.find(pill_name) == pill_ref_images.end()) {
+        std::cerr << "PillDetector: Reference image not found for " << pill_name << std::endl;
+        return 0;
+    }
+
+    cv::Mat& img_object = pill_ref_images[pill_name];
+    if (img_object.empty()) {
+        return 0;
+    }
+
+    std::vector<cv::KeyPoint> keypoints_object;
+    cv::Mat descriptors_object;
+    orb->detectAndCompute(img_object, cv::noArray(), keypoints_object, descriptors_object);
+
+    if (descriptors_object.empty() || descriptors_scene.empty()) {
+        return 0;
+    }
+
+    std::vector<cv::DMatch> matches;
+    matcher.match(descriptors_object, descriptors_scene, matches);
+
+    return matches.size();
 }
 
 void PillDetector::run(cv::Mat cap) {
@@ -145,13 +174,54 @@ void PillDetector::run(cv::Mat cap) {
 
     cv::imshow("Pill Detector", annotated);
 
+    PillResult results;
+
+    for (const auto& [box, conf] : pill_boxes) {
+        cv::Mat pill_roi = frame(box).clone();
+        cv::Mat gray_roi;
+        cv::cvtColor(pill_roi, gray_roi, cv::COLOR_BGR2GRAY);
+
+        std::vector<cv::KeyPoint> kp_scene;
+        cv::Mat descriptors_scene;
+        orb->detectAndCompute(gray_roi, cv::noArray(), kp_scene, descriptors_scene); // make features
+
+        std::string best_pill_name = "misc";
+        int best_score = 0;
+
+        if (!descriptors_scene.empty()) {
+            for (const auto& [pill_name, ref_img] : pill_ref_images) {
+                int score = get_match_score(descriptors_scene, pill_name);
+
+                if (score > best_score) {
+                    best_score = score;
+                    best_pill_name = pill_name;
+                }
+            }
+        }
+
+        detected(results, best_pill_name);
+
+    }
+
     waiting_for_result = false;
     if (result_callback) {
-        result_callback({});
+        result_callback(std::move(results));
     }
 }
 
 void PillDetector::shutdown() {
+}
+
+void PillDetector::detected(PillResult& pill_result, std::string name) {
+    auto exists = std::ranges::find_if(pill_result, [&name](const auto& entry) -> bool {
+        return (entry.pill_type == name);
+    });
+
+    if (exists == pill_result.end()) {
+        pill_result.emplace_back(name, 1);
+    } else {
+        ++exists->quantity;
+    }
 }
 
 bool PillDetector::is_waiting_for_result() const {
