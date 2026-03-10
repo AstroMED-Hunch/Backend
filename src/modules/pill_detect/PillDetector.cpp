@@ -1,0 +1,173 @@
+//
+// Created by Marco Stulic on 3/10/26.
+//
+
+#include "PillDetector.hpp"
+
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+
+#include <algorithm>
+#include <iostream>
+
+constexpr double PILL_DETECTOR_THRESHOLD = 0.4;
+const int INPUT_H = 480;
+const int INPUT_W = 832;
+
+std::string PillDetector::get_module_name() const {
+    return Module::get_module_name();
+}
+
+void PillDetector::initialize() {
+    std::string model_path = layout->get_config_value("pill_detector_model");
+    if (model_path.empty()) {
+        std::cerr << "PillDetector: No model path specified in layout config under 'pill_detector_model'" << std::endl;
+        return;
+    }
+
+    try {
+        net = cv::dnn::readNet(model_path);
+        std::cout << "PillDetector: Successfully loaded model from " << model_path << std::endl;
+    } catch (const cv::Exception& e) {
+        std::cerr << "PillDetector: Failed to load model from " << model_path << ": " << e.what() << std::endl;
+    }
+
+}
+
+void PillDetector::run(cv::Mat cap) {
+    if (!waiting_for_result) {
+        return;
+    }
+
+    if (cap.empty()) {
+        std::cerr << "PillDetector: Input frame is empty." << std::endl;
+        return;
+    }
+
+    if (net.empty()) {
+        std::cerr << "PillDetector: Model is not loaded." << std::endl;
+        waiting_for_result = false;
+        if (result_callback) {
+            result_callback({});
+        }
+        return;
+    }
+
+    const cv::Mat frame = cap.clone();
+    last_detected_pill_images.clear();
+
+    cv::Mat blob = cv::dnn::blobFromImage(
+        frame,
+        1.0 / 255.0,
+        cv::Size(INPUT_W, INPUT_H),
+        cv::Scalar(),
+        true,
+        false,
+        CV_32F
+    );
+
+    net.setInput(blob);
+    cv::Mat raw = net.forward();
+
+    if (raw.empty() || raw.total() % 6 != 0) {
+        std::cerr << "PillDetector: Unexpected model output shape." << std::endl;
+        waiting_for_result = false;
+        if (result_callback) {
+            result_callback({});
+        }
+        return;
+    }
+
+    cv::Mat detections = raw.reshape(1, static_cast<int>(raw.total() / 6));
+    std::vector<std::pair<cv::Rect, float>> pill_boxes;
+    pill_boxes.reserve(detections.rows);
+
+    for (int i = 0; i < detections.rows; ++i) {
+        const float* det = detections.ptr<float>(i);
+        const float conf = det[4];
+        if (conf < PILL_DETECTOR_THRESHOLD) {
+            continue;
+        }
+
+        const int x1 = static_cast<int>(det[0] / INPUT_W * frame.cols);
+        const int y1 = static_cast<int>(det[1] / INPUT_H * frame.rows);
+        const int x2 = static_cast<int>(det[2] / INPUT_W * frame.cols);
+        const int y2 = static_cast<int>(det[3] / INPUT_H * frame.rows);
+
+        const cv::Rect unclamped_box(cv::Point(x1, y1), cv::Point(x2, y2));
+        const cv::Rect frame_bounds(0, 0, frame.cols, frame.rows);
+        const cv::Rect box = unclamped_box & frame_bounds;
+
+        if (box.width <= 0 || box.height <= 0) {
+            continue;
+        }
+
+        pill_boxes.emplace_back(box, conf);
+    }
+
+    std::sort(
+        pill_boxes.begin(),
+        pill_boxes.end(),
+        [](const auto& a, const auto& b) {
+            return a.second > b.second;
+        }
+    );
+
+    cv::Mat annotated = frame.clone();
+    for (const auto& [box, conf] : pill_boxes) {
+        last_detected_pill_images.push_back(frame(box).clone());
+
+        cv::rectangle(annotated, box, cv::Scalar(0, 255, 0), 2);
+        const std::string label = "pill " + cv::format("%.2f", conf);
+
+        int baseline = 0;
+        const cv::Size text_size = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.6, 2, &baseline);
+        const int label_y = std::max(0, box.y - text_size.height - 8);
+
+        cv::rectangle(
+            annotated,
+            cv::Point(box.x, label_y),
+            cv::Point(box.x + text_size.width + 4, label_y + text_size.height + baseline + 4),
+            cv::Scalar(0, 255, 0),
+            cv::FILLED
+        );
+
+        cv::putText(
+            annotated,
+            label,
+            cv::Point(box.x + 2, label_y + text_size.height),
+            cv::FONT_HERSHEY_SIMPLEX,
+            0.6,
+            cv::Scalar(0, 0, 0),
+            2
+        );
+    }
+
+    cv::imshow("Pill Detector", annotated);
+
+    waiting_for_result = false;
+    if (result_callback) {
+        result_callback({});
+    }
+}
+
+void PillDetector::shutdown() {
+}
+
+bool PillDetector::is_waiting_for_result() const {
+    return waiting_for_result;
+}
+
+void PillDetector::get_result(std::function<void(PillResult)> callback) {
+    if (waiting_for_result) {
+        std::cerr << "PillDetector: Already waiting for a result, cannot get new result until current one is ready." << std::endl;
+        return;
+    }
+
+    waiting_for_result = true;
+    result_callback = std::move(callback);
+}
+
+const std::vector<cv::Mat>& PillDetector::get_last_detected_pill_images() const {
+    return last_detected_pill_images;
+}

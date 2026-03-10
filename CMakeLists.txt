@@ -39,6 +39,9 @@ set(HUNCH_SOURCES
     src/modules/rest_handler/RestHandler.hpp
     src/modules/audit_log/AuditLog.cpp
     src/modules/audit_log/AuditLog.hpp
+    src/modules/pill_detect/PillDetector.cpp
+    src/modules/pill_detect/PillDetector.hpp
+    src/models/PillEntry.hpp
 )
 
 
@@ -52,6 +55,5 @@ include_directories("./src/")
 
 add_executable(HunchMedical ${HUNCH_SOURCES})
 target_link_libraries(HunchMedical ${OpenCV_LIBS} dlib::dlib ixwebsocket)
-
 
 set_property(TARGET HunchMedical PROPERTY COMPILE_WARNING_AS_ERROR ON)

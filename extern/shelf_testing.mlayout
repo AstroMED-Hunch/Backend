@@ -20,10 +20,14 @@ load_module "shelf_recognition"
 load_module "rest_handler"
 load_module "face_recognition"
 load_module "audit_log"
+load_module "pill_detector"
 
 # face reg
 set_cfg "face_detection_model" to "../extern/yunet.onnx"
 set_cfg "face_recognition_model" to "../extern/sface.onnx"
+
+# pill rec
+set_cfg "pill_detector_model" to "../extern/astromed.onnx"
 
 #kiosk config
 set_cfg "kiosk_event_ws_uri" to "ws://localhost:3000"
@@ -36,8 +40,8 @@ summon_codeset "box_tags"
 interpreter_set "box"
 
 # Medication box markers
-push_code 0
-box_pretty_name 0 is "Medication Box A"
+push_code 3
+box_pretty_name 3 is "Medication Box A"
 
 # ARUCO CODE GROUPS - SHELVES
 # Codes in shelves act as polygons for spatial tracking
@@ -48,7 +52,7 @@ summon_codeset "shelf1"
 interpreter_set "shelf"
 
 # Four corner markers for shelf1
-push_code 0
+push_code 3
 push_code 2
 push_code 6
 push_code 8

@@ -14,4 +14,5 @@ build/
 /.idea/misc.xml
 /.idea/modules.xml
 /extern/sface.onnx
+/extern/astromed.onnx
 /.idea/vcs.xml
