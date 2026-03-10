@@ -11,6 +11,7 @@
 #include "ShelfDatabase.hpp"
 #include "models/ShelfEntry.hpp"
 #include "modules/audit_log/AuditLog.hpp"
+#include "modules/pill_detect/PillDetector.hpp"
 
 KioskEventHandler* KioskEventHandler::instance = nullptr;
 
@@ -22,6 +23,18 @@ void KioskEventHandler::on_msg(const std::string& msg_type, std::string content)
     if (msg_type == "registerBox") {
         if (status == KioskStatus::IDLE) {
             change_status(KioskStatus::FACE_RECOGNITION_BOXENTRY);
+        } else if (status == KioskStatus::FACE_RECOGNITION_BOXENTRY) {
+            registering_identity = last_seen_identity; // capture
+
+            pending_pill_result.clear();
+            if (PillDetector::get() != nullptr) {
+                PillDetector::get()->get_result([this](PillResult result) {
+                    pending_pill_result = std::move(result);
+                    std::cout << "[KioskEventHandler] Pill scan captured " << pending_pill_result.size() << " pill type(s)" << std::endl;
+                });
+            }
+
+            change_status(KioskStatus::PILL_CHECKUP);
         } else {
             int box_being_registered = last_box_sent;
             auto empty_shelf = ShelfDatabase::get_empty_shelf_entry();
@@ -34,16 +47,34 @@ void KioskEventHandler::on_msg(const std::string& msg_type, std::string content)
                 change_status(KioskStatus::SHELVES_FULL);
                 return;
             }
+
+            // send it as json
+            nlohmann::json pills_json = nlohmann::json::array();
+            for (const auto& pill : pending_pill_result) {
+                nlohmann::json pill_obj;
+                pill_obj["pill_type"] = pill.pill_type;
+                pill_obj["quantity"] = pill.quantity;
+                pills_json.push_back(pill_obj);
+            }
+
             nlohmann::json event_msg;
             event_msg["type"] = "boxLocation";
             event_msg["msg"] = empty_shelf->get_shelf_id();
+            event_msg["pills"] = pills_json;
             ws_socket->send(event_msg.dump());
 
-            ShelfDatabase::set_shelf_box_is_on(empty_shelf->get_shelf_id(), box_being_registered, last_seen_identity);
+            ShelfDatabase::set_shelf_box_is_on(empty_shelf->get_shelf_id(), box_being_registered, registering_identity);
+
+            // commit
+            BoxEntry* box_entry = ShelfDatabase::get_box_entry(box_being_registered);
+            if (box_entry != nullptr) {
+                box_entry->set_pills(pending_pill_result);
+            }
+            pending_pill_result.clear();
 
             std::cout << "Picked the shelf to place box on: " << empty_shelf->get_shelf_id() << std::endl;
             if (AuditLog::get() != nullptr) {
-                AuditLog::get()->add_log_entry("Box " + std::to_string(box_being_registered) + " registered by " + last_seen_identity + " on shelf " + empty_shelf->get_shelf_id());
+                AuditLog::get()->add_log_entry("Box " + std::to_string(box_being_registered) + " registered by " + registering_identity + " on shelf " + empty_shelf->get_shelf_id());
             }
 
             tell_client_box_update();
@@ -109,7 +140,7 @@ void KioskEventHandler::initialize() {
         [](const ix::WebSocketMessagePtr& msg) {
             if (msg->type == ix::WebSocketMessageType::Message) {
                 std::cout << "[KioskEventHandler] Received message: " << msg->str << std::endl;
-                nlohmann::json received_json = nlohmann::json::parse(msg->str, nullptr, false);
+                const nlohmann::json received_json = nlohmann::json::parse(msg->str, nullptr, false);
                 if (received_json.is_discarded()) {
                     std::cerr << "[KioskEventHandler] Error parsing JSON message." << std::endl;
                     return;

@@ -10,11 +10,10 @@
 
 #include "Module.hpp"
 #include "Module_Registry.hpp"
-#include "models/PillEntry.hpp"
+#include "models/BoxEntry.hpp"
 
 class PillDetector : public Module {
 public:
-    using PillResult = std::vector<PillEntry>;
     [[nodiscard]] std::string get_module_name() const override;
     void initialize() override;
     void run(cv::Mat cap) override;
@@ -25,6 +24,7 @@ public:
     int get_match_score(const cv::Mat& descriptors_scene, const std::string& image_path);
 
     static void detected(PillResult& pill_result, std::string name);
+    static PillDetector* get();
 protected:
     cv::dnn::Net net;
     bool waiting_for_result = false;
@@ -33,6 +33,8 @@ protected:
     cv::Ptr<cv::ORB> orb;
     cv::BFMatcher matcher;
     std::unordered_map<std::string, cv::Mat> pill_ref_images;
+
+    static PillDetector* instance;
 };
 
 MAKE_MODULE(PillDetector, "pill_detector");

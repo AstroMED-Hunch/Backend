@@ -14,12 +14,15 @@ constexpr double PILL_DETECTOR_THRESHOLD = 0.4;
 const int INPUT_H = 480;
 const int INPUT_W = 832;
 
+PillDetector* PillDetector::instance = nullptr;
+
 std::string PillDetector::get_module_name() const {
     return Module::get_module_name();
 }
 
 void PillDetector::initialize() {
     std::string model_path = layout->get_config_value("pill_detector_model");
+    instance = this;
     if (model_path.empty()) {
         std::cerr << "PillDetector: No model path specified in layout config under 'pill_detector_model'" << std::endl;
         return;
@@ -240,4 +243,8 @@ void PillDetector::get_result(std::function<void(PillResult)> callback) {
 
 const std::vector<cv::Mat>& PillDetector::get_last_detected_pill_images() const {
     return last_detected_pill_images;
+}
+
+PillDetector* PillDetector::get() {
+    return instance;
 }

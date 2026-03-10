@@ -6,7 +6,11 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <vector>
 
+#include "PillEntry.hpp"
+
+using PillResult = std::vector<PillEntry>;
 
 class BoxEntry {
 public:
@@ -23,14 +27,18 @@ public:
     void set_timestamp_current();
     void put(const std::string& user, sid shelf);
 
+    void set_pills(const PillResult& pill_result);
+
     [[nodiscard]] std::string get_user_placed() const;
     [[nodiscard]] int64_t get_timestamp() const;
     [[nodiscard]] int get_box_id() const;
     [[nodiscard]] sid get_shelf_id() const;
+    [[nodiscard]] PillResult get_pills() const;
 private:
     std::string user_placed;
     int64_t timestamp;
     sid shelf_id;
     int box_id;
+    PillResult pills;
     mutable std::recursive_mutex mutex;
 };

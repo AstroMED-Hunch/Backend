@@ -22,6 +22,7 @@ BoxEntry::BoxEntry(const BoxEntry& entry) {
     timestamp = entry.timestamp;
     shelf_id = entry.shelf_id;
     box_id = entry.box_id;
+    pills = entry.pills;
 }
 
 BoxEntry::BoxEntry(const std::string& user, int64_t ts, int id, sid shelf)
@@ -72,3 +73,14 @@ BoxEntry::sid BoxEntry::get_shelf_id() const {
     std::lock_guard<std::recursive_mutex> lock(mutex);
     return shelf_id;
 }
+
+void BoxEntry::set_pills(const PillResult& pill_result) {
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    pills = pill_result;
+}
+
+PillResult BoxEntry::get_pills() const {
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    return pills;
+}
+

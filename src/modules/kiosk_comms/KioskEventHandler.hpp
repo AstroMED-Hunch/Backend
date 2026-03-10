@@ -10,12 +10,15 @@
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXUserAgent.h>
 
+#include "models/BoxEntry.hpp"
+
 enum class KioskStatus {
     IDLE,
     MULTIPLE_BOXES,
     SHELVES_FULL,
     FACE_RECOGNITION_BOXENTRY,
-    FACE_RECOGNITION_BOXEXIT
+    FACE_RECOGNITION_BOXEXIT,
+    PILL_CHECKUP
 };
 
 const std::map<KioskStatus, std::string> kiosk_to_str = {
@@ -23,7 +26,8 @@ const std::map<KioskStatus, std::string> kiosk_to_str = {
     {KioskStatus::MULTIPLE_BOXES, "multiple_boxes"},
     {KioskStatus::FACE_RECOGNITION_BOXENTRY, "face_recognition_boxentry"},
     {KioskStatus::SHELVES_FULL, "shelves_full"},
-    {KioskStatus::FACE_RECOGNITION_BOXEXIT, "face_recognition_boxexit"}
+    {KioskStatus::FACE_RECOGNITION_BOXEXIT, "face_recognition_boxexit"},
+    {KioskStatus::PILL_CHECKUP, "pill_checkup"}
 };
 
 class KioskEventHandler : public Module {
@@ -57,6 +61,10 @@ protected:
     static KioskEventHandler* instance;
     int last_box_sent = -1;
     std::string last_seen_identity = "err_nodetect";
+    std::string registering_identity = "err_nodetect";
+    PillResult pending_pill_result;
+
+
 };
 
 MAKE_MODULE(KioskEventHandler, "kiosk_events");
