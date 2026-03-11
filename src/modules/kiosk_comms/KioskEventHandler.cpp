@@ -123,6 +123,8 @@ void KioskEventHandler::on_msg(const std::string& msg_type, std::string content)
             }
 
         }
+    } else if (msg_type == "capturePills") {
+        capture_pill_result();
     }
 }
 
@@ -263,3 +265,35 @@ void KioskEventHandler::send_face_recogniton_update(const std::string& identity)
     ws_socket->send(event_msg.dump());
     last_seen_identity = identity;
 }
+
+void KioskEventHandler::capture_pill_result() {
+    if (PillDetector::get() == nullptr) {
+        std::cerr << "[KioskEventHandler] capture_pill_result: PillDetector not available." << std::endl;
+        return;
+    }
+
+    PillDetector::get()->get_result([this](PillResult result) {
+        pending_pill_result = std::move(result);
+
+        nlohmann::json pills_json = nlohmann::json::array();
+        for (const auto& pill : pending_pill_result) {
+            nlohmann::json pill_obj;
+            pill_obj["pill_type"] = pill.pill_type;
+            pill_obj["quantity"] = pill.quantity;
+            pills_json.push_back(pill_obj);
+        }
+
+        nlohmann::json event_msg;
+        event_msg["type"] = "pillScanResult";
+        event_msg["pills"] = pills_json;
+        ws_socket->send(event_msg.dump());
+
+        std::cout << "[KioskEventHandler] Pill scan captured and sent: "
+                  << pending_pill_result.size() << " pill type(s)" << std::endl;
+
+        if (AuditLog::get() != nullptr) {
+            AuditLog::get()->add_log_entry("Pill scan captured: " + std::to_string(pending_pill_result.size()) + " pill type(s)");
+        }
+    });
+}
+

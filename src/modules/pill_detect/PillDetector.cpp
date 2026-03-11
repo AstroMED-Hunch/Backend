@@ -8,6 +8,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include <algorithm>
+#include <filesystem>
 #include <iostream>
 
 constexpr double PILL_DETECTOR_THRESHOLD = 0.4;
@@ -38,6 +39,26 @@ void PillDetector::initialize() {
     orb = cv::ORB::create(1000);
     matcher = cv::BFMatcher(cv::NORM_HAMMING, true);
 
+    // load images
+    std::string dir = layout->get_config_value("pill_images_dir");
+    if (dir.empty()) {
+        std::cerr << "PillDetector: No pill images directory specified in layout config under 'pill_images_dir'" << std::endl;
+        return;
+    }
+
+    for (const auto& entry : std::filesystem::directory_iterator(dir)) {
+        if (entry.is_regular_file()) {
+            const std::string path = entry.path().string();
+            const std::string filename = entry.path().stem().string();
+            cv::Mat img = cv::imread(path);
+            if (img.empty()) {
+                std::cerr << "PillDetector: Failed to load reference image from " << path << std::endl;
+                continue;
+            }
+            pill_ref_images[filename] = img;
+            std::cout << "PillDetector: Loaded reference image for " << filename << " from " << path << std::endl;
+        }
+    }
 
 }
 

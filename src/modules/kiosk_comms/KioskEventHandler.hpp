@@ -52,6 +52,7 @@ public:
     void on_msg(const std::string& msg_type, std::string content);
 
     void send_face_recogniton_update(const std::string& identity);
+    void capture_pill_result();
 protected:
 
     KioskStatus status = KioskStatus::IDLE;
