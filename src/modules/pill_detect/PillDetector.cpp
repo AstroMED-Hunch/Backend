@@ -11,7 +11,8 @@
 #include <filesystem>
 #include <iostream>
 
-constexpr double PILL_DETECTOR_THRESHOLD = 0.4;
+constexpr double PILL_DETECTOR_THRESHOLD = 0.8;
+constexpr double PILL_NMS_THRESHOLD = 0.8;
 const int INPUT_H = 480;
 const int INPUT_W = 832;
 
@@ -75,7 +76,9 @@ int PillDetector::get_match_score(const cv::Mat& descriptors_scene, const std::s
 
     std::vector<cv::KeyPoint> keypoints_object;
     cv::Mat descriptors_object;
-    orb->detectAndCompute(img_object, cv::noArray(), keypoints_object, descriptors_object);
+    if (img_object.cols >= 32 && img_object.rows >= 32) {
+        orb->detectAndCompute(img_object, cv::noArray(), keypoints_object, descriptors_object);
+    }
 
     if (descriptors_object.empty() || descriptors_scene.empty()) {
         return 0;
@@ -88,10 +91,7 @@ int PillDetector::get_match_score(const cv::Mat& descriptors_scene, const std::s
 }
 
 void PillDetector::run(cv::Mat cap) {
-    if (!waiting_for_result) {
-        return;
-    }
-
+    if (!waiting_for_result) return;
     if (cap.empty()) {
         std::cerr << "PillDetector: Input frame is empty." << std::endl;
         return;
@@ -100,9 +100,7 @@ void PillDetector::run(cv::Mat cap) {
     if (net.empty()) {
         std::cerr << "PillDetector: Model is not loaded." << std::endl;
         waiting_for_result = false;
-        if (result_callback) {
-            result_callback({});
-        }
+        if (result_callback) result_callback({});
         return;
     }
 
@@ -110,105 +108,81 @@ void PillDetector::run(cv::Mat cap) {
     last_detected_pill_images.clear();
 
     cv::Mat blob = cv::dnn::blobFromImage(
-        frame,
-        1.0 / 255.0,
-        cv::Size(INPUT_W, INPUT_H),
-        cv::Scalar(),
-        true,
-        false,
-        CV_32F
+        frame, 1.0 / 255.0, cv::Size(INPUT_W, INPUT_H), cv::Scalar(), true, false, CV_32F
     );
 
     net.setInput(blob);
     cv::Mat raw = net.forward();
 
-    if (raw.empty() || raw.total() % 6 != 0) {
-        std::cerr << "PillDetector: Unexpected model output shape." << std::endl;
-        waiting_for_result = false;
-        if (result_callback) {
-            result_callback({});
-        }
-        return;
+    cv::Mat detections;
+    int num_features;
+    if (raw.dims == 3 && raw.size[1] < raw.size[2]) {
+        num_features = raw.size[1];
+        cv::Mat temp = raw.reshape(1, num_features);
+        cv::transpose(temp, detections);
+    } else {
+        num_features = raw.size[raw.dims - 1];
+        detections = raw.reshape(1, static_cast<int>(raw.total() / num_features));
     }
 
-    cv::Mat detections = raw.reshape(1, static_cast<int>(raw.total() / 6));
-    std::vector<std::pair<cv::Rect, float>> pill_boxes;
-    pill_boxes.reserve(detections.rows);
+    std::vector<cv::Rect> raw_boxes;
+    std::vector<float> confidences;
 
     for (int i = 0; i < detections.rows; ++i) {
         const float* det = detections.ptr<float>(i);
-        const float conf = det[4];
-        if (conf < PILL_DETECTOR_THRESHOLD) {
-            continue;
+        const float conf = (num_features >= 6) ? det[4] * det[5] : det[4];
+
+        if (conf < PILL_DETECTOR_THRESHOLD) continue;
+
+        float cx = det[0];
+        float cy = det[1];
+        float w  = det[2];
+        float h  = det[3];
+
+        int width  = static_cast<int>(w / INPUT_W * frame.cols);
+        int height = static_cast<int>(h / INPUT_H * frame.rows);
+        int x      = static_cast<int>((cx / INPUT_W * frame.cols) - (width / 2));
+        int y      = static_cast<int>((cy / INPUT_H * frame.rows) - (height / 2));
+
+        cv::Rect unclamped_box(x, y, width, height);
+        cv::Rect frame_bounds(0, 0, frame.cols, frame.rows);
+        cv::Rect box = unclamped_box & frame_bounds;
+
+        if (box.width > 0 && box.height > 0) {
+            raw_boxes.push_back(box);
+            confidences.push_back(conf);
         }
-
-        const int x1 = static_cast<int>(det[0] / INPUT_W * frame.cols);
-        const int y1 = static_cast<int>(det[1] / INPUT_H * frame.rows);
-        const int x2 = static_cast<int>(det[2] / INPUT_W * frame.cols);
-        const int y2 = static_cast<int>(det[3] / INPUT_H * frame.rows);
-
-        const cv::Rect unclamped_box(cv::Point(x1, y1), cv::Point(x2, y2));
-        const cv::Rect frame_bounds(0, 0, frame.cols, frame.rows);
-        const cv::Rect box = unclamped_box & frame_bounds;
-
-        if (box.width <= 0 || box.height <= 0) {
-            continue;
-        }
-
-        pill_boxes.emplace_back(box, conf);
     }
 
-    std::sort(
-        pill_boxes.begin(),
-        pill_boxes.end(),
-        [](const auto& a, const auto& b) {
-            return a.second > b.second;
-        }
-    );
+    std::vector<int> nms_indices;
+    cv::dnn::NMSBoxes(raw_boxes, confidences, PILL_DETECTOR_THRESHOLD, PILL_NMS_THRESHOLD, nms_indices);
+
+    std::vector<std::pair<cv::Rect, float>> pill_boxes;
+    for (int idx : nms_indices) {
+        pill_boxes.emplace_back(raw_boxes[idx], confidences[idx]);
+    }
 
     cv::Mat annotated = frame.clone();
+    PillResult results;
+
     for (const auto& [box, conf] : pill_boxes) {
         last_detected_pill_images.push_back(frame(box).clone());
 
         cv::rectangle(annotated, box, cv::Scalar(0, 255, 0), 2);
-        const std::string label = "pill " + cv::format("%.2f", conf);
+        std::string label = "pill " + cv::format("%.2f", conf);
+        cv::putText(annotated, label, cv::Point(box.x, box.y - 5),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
 
-        int baseline = 0;
-        const cv::Size text_size = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.6, 2, &baseline);
-        const int label_y = std::max(0, box.y - text_size.height - 8);
-
-        cv::rectangle(
-            annotated,
-            cv::Point(box.x, label_y),
-            cv::Point(box.x + text_size.width + 4, label_y + text_size.height + baseline + 4),
-            cv::Scalar(0, 255, 0),
-            cv::FILLED
-        );
-
-        cv::putText(
-            annotated,
-            label,
-            cv::Point(box.x + 2, label_y + text_size.height),
-            cv::FONT_HERSHEY_SIMPLEX,
-            0.6,
-            cv::Scalar(0, 0, 0),
-            2
-        );
-    }
-
-    cv::imshow("Pill Detector", annotated);
-    cv::imwrite("pill_detector_output.jpg", annotated);
-
-    PillResult results;
-
-    for (const auto& [box, conf] : pill_boxes) {
         cv::Mat pill_roi = frame(box).clone();
         cv::Mat gray_roi;
         cv::cvtColor(pill_roi, gray_roi, cv::COLOR_BGR2GRAY);
 
         std::vector<cv::KeyPoint> kp_scene;
         cv::Mat descriptors_scene;
-        orb->detectAndCompute(gray_roi, cv::noArray(), kp_scene, descriptors_scene); // make features
+
+        if (gray_roi.cols >= 32 && gray_roi.rows >= 32) {
+            orb->detectAndCompute(gray_roi, cv::noArray(), kp_scene, descriptors_scene);
+        }
 
         std::string best_pill_name = "misc";
         int best_score = 0;
@@ -216,17 +190,17 @@ void PillDetector::run(cv::Mat cap) {
         if (!descriptors_scene.empty()) {
             for (const auto& [pill_name, ref_img] : pill_ref_images) {
                 int score = get_match_score(descriptors_scene, pill_name);
-
                 if (score > best_score) {
                     best_score = score;
                     best_pill_name = pill_name;
                 }
             }
         }
-
         detected(results, best_pill_name);
-
     }
+
+    cv::imshow("Pill Detector", annotated);
+    cv::imwrite("pill_detector_output.jpg", annotated);
 
     waiting_for_result = false;
     if (result_callback) {
