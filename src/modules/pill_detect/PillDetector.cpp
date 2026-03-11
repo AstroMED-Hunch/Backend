@@ -197,6 +197,7 @@ void PillDetector::run(cv::Mat cap) {
     }
 
     cv::imshow("Pill Detector", annotated);
+    cv::imwrite("pill_detector_output.jpg", annotated);
 
     PillResult results;
 
